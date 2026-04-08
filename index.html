@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clock</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23111'/><circle cx='32' cy='32' r='20' fill='none' stroke='%23fff' stroke-width='2'/><line x1='32' y1='32' x2='32' y2='16' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' transform='rotate(13.5 32 32)'/><line x1='32' y1='32' x2='32' y2='14' stroke='%23fff' stroke-width='1.5' stroke-linecap='round' transform='rotate(162 32 32)'/><circle cx='32' cy='32' r='2' fill='%23fff'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Ubuntu:wght@300;400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/recoleta" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;font-family:'Quicksand',sans-serif;transition:background .5s ease,color .5s ease}
+body.dark{background:#000;color:#fff}
+body.light{background:#f5f4f0;color:#111}
+
+#mobile-block{display:none;height:100%;align-items:center;justify-content:center;text-align:center;padding:2rem;font-size:1.1rem;line-height:1.7}
+body.dark #mobile-block{color:#555}
+body.light #mobile-block{color:#999}
+#mobile-block b{display:block;margin-bottom:.5rem;font-size:1.3rem}
+body.dark #mobile-block b{color:#888}
+body.light #mobile-block b{color:#666}
+@media(max-width:768px){
+  #main,#bottom-ui,#controls{display:none!important}
+  #mobile-block{display:flex;flex-direction:column}
+}
+
+#main{display:flex;flex-direction:column;height:100%;align-items:center;justify-content:center;position:relative}
+
+/* Digit row */
+#digit-row{display:flex;align-items:center;transform-origin:center center;transition:transform .5s cubic-bezier(.4,0,.2,1),margin .5s ease;white-space:nowrap;margin-top:0}
+#digit-row.clock-center{margin-top:200px}
+#digit-row.compact{transform:scale(.28)!important;margin-top:0;margin-bottom:-3rem}
+.group{display:flex;gap:6px;align-items:center}
+.sep{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;padding:0 1.5rem}
+.sep span{display:block;width:.7rem;height:.7rem;border-radius:50%;transition:background .5s ease}
+body.dark .sep span{background:#333}
+body.light .sep span{background:#ccc}
+
+#ampm{font-family:'Recoleta',serif;font-weight:300;font-size:9.5rem;letter-spacing:.02em;display:inline-flex;align-items:center;overflow:hidden;max-width:0;opacity:0;transition:max-width .5s cubic-bezier(.4,0,.2,1),opacity .5s ease,color .5s ease,margin .5s ease;white-space:nowrap;margin-left:0}
+#ampm.visible{max-width:14rem;opacity:1;margin-left:1.2rem}
+body.dark #ampm{color:#e0e0e0}
+body.light #ampm{color:#222}
+
+.digit{position:relative;width:7.5rem;height:12.5rem;overflow:hidden}
+.digit-track{position:absolute;top:0;left:0;width:100%;transition:transform .45s cubic-bezier(.4,0,.2,1)}
+.digit-track .num{height:12.5rem;display:flex;align-items:center;justify-content:center;font-family:'Recoleta',serif;font-size:9.5rem;font-weight:300;letter-spacing:.02em;user-select:none;transition:color .5s ease}
+body.dark .digit-track .num{color:#e0e0e0}
+body.light .digit-track .num{color:#222}
+body.dark .digit.changing .digit-track .num.active{text-shadow:0 0 40px rgba(255,255,255,.06)}
+body.light .digit.changing .digit-track .num.active{text-shadow:0 0 40px rgba(0,0,0,.04)}
+
+#ms-display{font-family:'Recoleta',serif;font-weight:300;font-size:2.5rem;letter-spacing:.05em;margin-left:.3rem;min-width:2.5em;transition:color .5s ease;opacity:0}
+body.dark #ms-display{color:#555}
+body.light #ms-display{color:#bbb}
+#ms-display.visible{opacity:1}
+
+/* Sub-UI */
+#sub-ui{display:flex;flex-direction:column;align-items:center;gap:.6rem;margin-top:clamp(1rem,2vh,1.5rem);min-height:5rem;overflow:hidden;transition:min-height .5s ease,margin .5s ease,opacity .5s ease}
+#sub-ui.collapsed{min-height:0;margin-top:0;opacity:0;pointer-events:none}
+
+#action-row{display:flex;gap:.6rem;opacity:0;pointer-events:none;transition:opacity .4s ease}
+#action-row.visible{opacity:1;pointer-events:auto}
+.act-btn{font-family:'Quicksand',sans-serif;font-weight:500;font-size:clamp(.6rem,.85vw,.75rem);letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:100px;padding:.45rem 1.3rem;cursor:pointer;transition:all .3s ease;outline:none}
+body.dark .act-btn{background:#111;color:#555;border:1px solid #222}
+body.light .act-btn{background:#eae8e4;color:#999;border:1px solid #ddd}
+body.dark .act-btn:hover{background:#1a1a1a;color:#aaa}
+body.light .act-btn:hover{background:#ddd;color:#666}
+.act-btn.primary{font-weight:600}
+body.dark .act-btn.primary{background:#fff;color:#000;border-color:#fff}
+body.light .act-btn.primary{background:#222;color:#f5f4f0;border-color:#222}
+body.dark .act-btn.primary:hover{background:#ddd}
+body.light .act-btn.primary:hover{background:#444}
+.act-btn.danger{font-weight:600}
+body.dark .act-btn.danger{background:#3a1111;color:#e55;border-color:#3a1111}
+body.light .act-btn.danger{background:#fdd;color:#c33;border-color:#fcc}
+
+#presets{display:flex;gap:.5rem;opacity:0;pointer-events:none;transition:opacity .4s ease;flex-wrap:wrap;justify-content:center}
+#presets.visible{opacity:1;pointer-events:auto}
+.preset-btn{font-family:'Quicksand',sans-serif;font-weight:400;font-size:clamp(.55rem,.8vw,.7rem);letter-spacing:.06em;border:none;border-radius:100px;padding:.35rem .9rem;cursor:pointer;transition:all .3s ease;outline:none}
+body.dark .preset-btn{background:#0e0e0e;color:#555;border:1px solid #1a1a1a}
+body.light .preset-btn{background:#eae8e4;color:#aaa;border:1px solid #dfddd8}
+body.dark .preset-btn:hover{background:#1a1a1a;color:#aaa}
+body.light .preset-btn:hover{background:#ddd;color:#666}
+
+.time-picker{display:flex;align-items:center;gap:.3rem;opacity:0;pointer-events:none;transition:opacity .4s ease}
+.time-picker.visible{opacity:1;pointer-events:auto}
+.tp-col{display:flex;flex-direction:column;align-items:center;gap:.15rem}
+.tp-arrow{width:2rem;height:1.4rem;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;border-radius:8px;font-size:.7rem;line-height:1;transition:all .2s ease;outline:none;font-family:'Quicksand',sans-serif}
+body.dark .tp-arrow{background:transparent;color:#444;border:1px solid #1a1a1a}
+body.light .tp-arrow{background:transparent;color:#bbb;border:1px solid #ddd}
+body.dark .tp-arrow:hover{color:#aaa;background:#1a1a1a}
+body.light .tp-arrow:hover{color:#666;background:#ddd}
+.tp-val{font-family:'Recoleta',serif;font-weight:300;font-size:clamp(1.1rem,2vw,1.6rem);min-width:2.2rem;text-align:center;user-select:none;transition:color .5s ease,background .2s ease;border-radius:8px;padding:.1rem .3rem;cursor:pointer;outline:none}
+body.dark .tp-val{color:#888}
+body.light .tp-val{color:#555}
+.tp-val.active{background:rgba(255,210,50,.15)}
+body.dark .tp-val.active{color:#ffd232}
+body.light .tp-val.active{color:#b8930a}
+.tp-label{font-family:'Quicksand',sans-serif;font-weight:400;font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;margin-top:.1rem;transition:color .5s ease}
+body.dark .tp-label{color:#333}
+body.light .tp-label{color:#ccc}
+.tp-colon{font-family:'Recoleta',serif;font-weight:300;font-size:clamp(1rem,1.8vw,1.4rem);padding:0 .1rem;align-self:center;margin-bottom:1rem;transition:color .5s ease}
+body.dark .tp-colon{color:#333}
+body.light .tp-colon{color:#ccc}
+
+.status-text{font-family:'Quicksand',sans-serif;font-weight:400;font-size:clamp(.55rem,.8vw,.7rem);letter-spacing:.08em;text-transform:uppercase;min-height:1.2em;transition:color .5s ease}
+body.dark .status-text{color:#333}
+body.light .status-text{color:#ccc}
+
+#laps{position:absolute;bottom:clamp(6rem,12vh,10rem);max-height:18vh;overflow-y:auto;display:flex;flex-direction:column-reverse;gap:.25rem;align-items:center;opacity:0;transition:opacity .4s ease;scrollbar-width:none}
+#laps::-webkit-scrollbar{display:none}
+#laps.visible{opacity:1}
+.lap{font-family:'Quicksand',sans-serif;font-weight:400;font-size:clamp(.55rem,.8vw,.7rem);letter-spacing:.06em}
+body.dark .lap{color:#444}
+body.light .lap{color:#bbb}
+
+/* ======== LIVE ACTIVITY ======== */
+#live-activity{display:flex;flex-direction:column;align-items:center;gap:1.5rem;opacity:0;pointer-events:none;transition:opacity .6s ease;margin-top:1rem}
+#live-activity.visible{opacity:1;pointer-events:auto}
+
+#la-prompt{display:flex;flex-direction:column;align-items:center;gap:.8rem}
+#la-prompt .la-msg{font-weight:400;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
+body.dark #la-prompt .la-msg{color:#444}
+body.light #la-prompt .la-msg{color:#bbb}
+
+#np-card{display:none;flex-direction:column;align-items:center;gap:1.2rem}
+#np-card.visible{display:flex}
+#np-art{width:clamp(180px,22vw,280px);height:clamp(180px,22vw,280px);border-radius:20px;object-fit:cover;transition:opacity .4s ease}
+body.dark #np-art{box-shadow:0 8px 40px rgba(0,0,0,.6)}
+body.light #np-art{box-shadow:0 8px 40px rgba(0,0,0,.1)}
+#np-placeholder{width:clamp(180px,22vw,280px);height:clamp(180px,22vw,280px);border-radius:20px;display:flex;align-items:center;justify-content:center;transition:all .5s ease}
+body.dark #np-placeholder{background:#111}
+body.light #np-placeholder{background:#e5e3df}
+#np-placeholder svg{width:3rem;height:3rem;transition:fill .5s ease}
+body.dark #np-placeholder svg{fill:#333}
+body.light #np-placeholder svg{fill:#ccc}
+#np-info{display:flex;flex-direction:column;align-items:center;gap:.25rem}
+#np-track{font-family:'Quicksand',sans-serif;font-weight:600;font-size:clamp(.85rem,1.4vw,1.1rem);letter-spacing:.03em;text-align:center;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .5s ease}
+body.dark #np-track{color:#e0e0e0}
+body.light #np-track{color:#222}
+#np-artist{font-family:'Quicksand',sans-serif;font-weight:400;font-size:clamp(.65rem,1vw,.82rem);letter-spacing:.05em;text-align:center;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .5s ease}
+body.dark #np-artist{color:#666}
+body.light #np-artist{color:#999}
+#np-progress{width:clamp(180px,22vw,280px);height:3px;border-radius:2px;overflow:hidden;transition:background .5s ease}
+body.dark #np-progress{background:#1a1a1a}
+body.light #np-progress{background:#ddd}
+#np-progress-fill{height:100%;border-radius:2px;transition:width .5s linear,background .5s ease;width:0}
+body.dark #np-progress-fill{background:#666}
+body.light #np-progress-fill{background:#999}
+#np-controls{display:flex;align-items:center;gap:1.8rem}
+.np-btn{background:none;border:none;cursor:pointer;padding:.3rem;transition:all .2s ease;outline:none;display:flex;align-items:center;justify-content:center}
+.np-btn svg{transition:fill .5s ease}
+body.dark .np-btn svg{fill:#666}
+body.light .np-btn svg{fill:#aaa}
+body.dark .np-btn:hover svg{fill:#e0e0e0}
+body.light .np-btn:hover svg{fill:#333}
+.np-btn.play-btn svg{width:2.2rem;height:2.2rem}
+body.dark .np-btn.play-btn svg{fill:#e0e0e0}
+body.light .np-btn.play-btn svg{fill:#222}
+body.dark .np-btn.play-btn:hover svg{fill:#fff}
+body.light .np-btn.play-btn:hover svg{fill:#000}
+.np-btn.skip svg{width:1.2rem;height:1.2rem}
+#np-empty{font-family:'Quicksand',sans-serif;font-weight:400;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;transition:color .5s ease}
+body.dark #np-empty{color:#333}
+body.light #np-empty{color:#ccc}
+
+/* ======== SETTINGS OVERLAY ======== */
+#settings-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s ease}
+#settings-overlay.open{opacity:1;pointer-events:auto}
+#settings-backdrop{position:absolute;inset:0;transition:background .4s ease}
+body.dark #settings-backdrop{background:rgba(0,0,0,.85)}
+body.light #settings-backdrop{background:rgba(0,0,0,.4)}
+
+#settings-panel{position:relative;width:min(480px,90vw);max-height:80vh;overflow-y:auto;border-radius:24px;padding:2.5rem 2rem 2rem;transition:all .5s ease,transform .4s cubic-bezier(.4,0,.2,1);transform:translateY(20px);scrollbar-width:none}
+#settings-panel::-webkit-scrollbar{display:none}
+#settings-overlay.open #settings-panel{transform:translateY(0)}
+body.dark #settings-panel{background:#0a0a0a;border:1px solid #1a1a1a}
+body.light #settings-panel{background:#fff;border:1px solid #e5e3df;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+
+#settings-panel h2{font-family:'Quicksand',sans-serif;font-weight:600;font-size:1rem;letter-spacing:.15em;text-transform:uppercase;margin-bottom:2rem;text-align:center;transition:color .5s ease}
+body.dark #settings-panel h2{color:#888}
+body.light #settings-panel h2{color:#555}
+
+.s-close{position:absolute;top:1rem;right:1.2rem;background:none;border:none;cursor:pointer;font-size:1.2rem;line-height:1;transition:color .3s ease;outline:none}
+body.dark .s-close{color:#444}
+body.light .s-close{color:#bbb}
+body.dark .s-close:hover{color:#aaa}
+body.light .s-close:hover{color:#666}
+
+.s-section{margin-bottom:1.8rem}
+.s-section-title{font-family:'Quicksand',sans-serif;font-weight:500;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.8rem;transition:color .5s ease}
+body.dark .s-section-title{color:#555}
+body.light .s-section-title{color:#aaa}
+
+.s-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem 0}
+.s-row+.s-row{border-top:1px solid transparent;transition:border-color .5s ease}
+body.dark .s-row+.s-row{border-color:#141414}
+body.light .s-row+.s-row{border-color:#f0eeea}
+
+.s-label{font-family:'Quicksand',sans-serif;font-weight:400;font-size:.78rem;letter-spacing:.04em;transition:color .5s ease}
+body.dark .s-label{color:#888}
+body.light .s-label{color:#555}
+.s-desc{font-family:'Quicksand',sans-serif;font-weight:400;font-size:.6rem;letter-spacing:.03em;margin-top:.2rem;line-height:1.5;transition:color .5s ease}
+body.dark .s-desc{color:#333}
+body.light .s-desc{color:#ccc}
+
+.s-input{font-family:'Quicksand',sans-serif;font-size:.75rem;padding:.4rem .8rem;border-radius:100px;outline:none;width:14rem;text-align:center;transition:all .3s ease;border:1px solid transparent;letter-spacing:.03em}
+body.dark .s-input{background:#111;color:#aaa;border-color:#222}
+body.light .s-input{background:#f5f4f0;color:#555;border-color:#e5e3df}
+body.dark .s-input:focus{border-color:#444}
+body.light .s-input:focus{border-color:#bbb}
+
+.s-btn{font-family:'Quicksand',sans-serif;font-weight:500;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:100px;padding:.4rem 1rem;cursor:pointer;transition:all .3s ease;outline:none}
+body.dark .s-btn{background:#1a1a1a;color:#666;border:1px solid #222}
+body.light .s-btn{background:#f0eeea;color:#999;border:1px solid #e5e3df}
+body.dark .s-btn:hover{background:#222;color:#aaa}
+body.light .s-btn:hover{background:#e5e3df;color:#666}
+.s-btn.green{font-weight:600}
+body.dark .s-btn.green{background:#0d2a1a;color:#4c8;border-color:#0d2a1a}
+body.light .s-btn.green{background:#d4f5e0;color:#2a7a4a;border-color:#c5ecd5}
+.s-btn.red{font-weight:600}
+body.dark .s-btn.red{background:#2a0d0d;color:#e55;border-color:#2a0d0d}
+body.light .s-btn.red{background:#fde;color:#c44;border-color:#fcc}
+
+.s-status{font-family:'Quicksand',sans-serif;font-weight:400;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;margin-top:.3rem}
+body.dark .s-status{color:#444}
+body.light .s-status{color:#bbb}
+.s-status.connected{color:#4c8!important}
+
+/* Bottom UI */
+#bottom-ui{position:fixed;bottom:0;left:0;right:0;display:flex;flex-direction:column;align-items:center;padding-bottom:clamp(1.5rem,3vh,3rem);gap:clamp(.7rem,1.4vh,1.1rem);transition:opacity .5s ease,transform .5s ease;z-index:10}
+#bottom-ui.hidden{opacity:0;transform:translateY(20px);pointer-events:none}
+#date{font-family:'Quicksand',sans-serif;font-weight:300;font-size:clamp(.75rem,1.4vw,1.1rem);letter-spacing:.25em;text-transform:uppercase;transition:color .5s ease,opacity .4s ease}
+body.dark #date{color:#2a2a2a}
+body.light #date{color:#ccc}
+#nav-row{display:flex;gap:clamp(.4rem,1vw,.7rem);align-items:center}
+.nav-btn{font-family:'Quicksand',sans-serif;font-weight:500;font-size:clamp(.6rem,.9vw,.78rem);letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:100px;padding:.45rem 1.1rem;cursor:pointer;transition:all .3s ease;outline:none}
+body.dark .nav-btn{background:#0e0e0e;color:#444;border:1px solid #1a1a1a}
+body.light .nav-btn{background:#eae8e4;color:#aaa;border:1px solid #dfddd8}
+body.dark .nav-btn:hover{background:#1a1a1a;color:#888}
+body.light .nav-btn:hover{background:#ddd;color:#777}
+.nav-btn.active{pointer-events:none}
+body.dark .nav-btn.active{background:#fff;color:#000;border-color:#fff}
+body.light .nav-btn.active{background:#222;color:#f5f4f0;border-color:#222}
+
+#controls{position:fixed;top:clamp(1rem,2vh,1.5rem);right:clamp(1rem,2vw,2rem);display:flex;gap:.5rem;z-index:20;transition:opacity .5s ease,transform .5s ease}
+#controls.hidden{opacity:0;transform:translateY(-10px);pointer-events:none}
+.ctrl-btn{font-family:'Quicksand',sans-serif;font-weight:500;font-size:clamp(.55rem,.8vw,.7rem);letter-spacing:.08em;text-transform:uppercase;border:none;border-radius:100px;padding:.38rem .9rem;cursor:pointer;transition:all .3s ease;outline:none}
+body.dark .ctrl-btn{background:#0e0e0e;color:#444;border:1px solid #1a1a1a}
+body.light .ctrl-btn{background:#eae8e4;color:#aaa;border:1px solid #dfddd8}
+body.dark .ctrl-btn:hover{color:#999;background:#1a1a1a}
+body.light .ctrl-btn:hover{color:#666;background:#ddd}
+/* Gear icon button */
+.ctrl-icon{display:flex;align-items:center;justify-content:center;padding:.38rem;border-radius:50%;width:1.8rem;height:1.8rem}
+.ctrl-icon svg{width:.85rem;height:.85rem;transition:fill .3s ease}
+body.dark .ctrl-icon svg{fill:#444}
+body.light .ctrl-icon svg{fill:#aaa}
+body.dark .ctrl-icon:hover svg{fill:#999}
+body.light .ctrl-icon:hover svg{fill:#666}
+
+@keyframes alarmFlash{0%,100%{opacity:1}50%{opacity:.3}}
+body.alarm-ring #digit-row{animation:alarmFlash .5s ease infinite}
+</style>
+</head>
+<body class="dark">
+
+<div id="mobile-block"><b>Desktop Only</b>This clock is designed for larger screens.<br>Please open on a desktop browser.</div>
+
+<div id="controls">
+  <button class="ctrl-btn" id="toggleFormat">24H</button>
+  <button class="ctrl-btn" id="toggleTheme">Light</button>
+  <button class="ctrl-btn ctrl-icon" id="openSettings" title="Settings"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg></button>
+</div>
+
+<!-- Settings Overlay -->
+<div id="settings-overlay">
+  <div id="settings-backdrop"></div>
+  <div id="settings-panel">
+    <button class="s-close" id="closeSettings">&times;</button>
+    <h2>Settings</h2>
+
+    <div class="s-section">
+      <div class="s-section-title">Integrations</div>
+      <div class="s-row" style="flex-direction:column;align-items:flex-start;gap:.6rem">
+        <div>
+          <div class="s-label">Spotify</div>
+          <div class="s-desc">Connect your Spotify account to show Now Playing in Live Activity.<br>Go to <a href="https://developer.spotify.com/dashboard" target="_blank" style="color:inherit;text-decoration:underline">developer.spotify.com</a>, create an app, add your current URL as Redirect URI, then paste the Client ID below.</div>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center;width:100%">
+          <input type="text" class="s-input" id="s-sp-id" placeholder="Paste Client ID" style="flex:1">
+          <button class="s-btn green" id="s-sp-connect">Connect</button>
+          <button class="s-btn red" id="s-sp-disconnect" style="display:none">Disconnect</button>
+        </div>
+        <div class="s-status" id="s-sp-status">Not connected</div>
+      </div>
+    </div>
+
+    <div class="s-section">
+      <div class="s-section-title">About</div>
+      <div class="s-row">
+        <div class="s-label" style="opacity:.5">clockBynan v1.0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="main">
+  <div id="digit-row" class="clock-center">
+    <div class="group" id="hh"></div>
+    <div class="sep"><span></span><span></span></div>
+    <div class="group" id="mm"></div>
+    <div class="sep"><span></span><span></span></div>
+    <div class="group" id="ss"></div>
+    <div id="ampm"></div>
+    <div id="ms-display"></div>
+  </div>
+
+  <div id="sub-ui" class="collapsed">
+    <div class="time-picker" id="timer-picker">
+      <div class="tp-col"><button class="tp-arrow" data-f="th" data-d="1">&#9650;</button><div class="tp-val" id="tp-th" data-f="th" tabindex="0">00</div><button class="tp-arrow" data-f="th" data-d="-1">&#9660;</button><div class="tp-label">hr</div></div>
+      <div class="tp-colon">:</div>
+      <div class="tp-col"><button class="tp-arrow" data-f="tm" data-d="1">&#9650;</button><div class="tp-val" id="tp-tm" data-f="tm" tabindex="0">05</div><button class="tp-arrow" data-f="tm" data-d="-1">&#9660;</button><div class="tp-label">min</div></div>
+      <div class="tp-colon">:</div>
+      <div class="tp-col"><button class="tp-arrow" data-f="ts" data-d="1">&#9650;</button><div class="tp-val" id="tp-ts" data-f="ts" tabindex="0">00</div><button class="tp-arrow" data-f="ts" data-d="-1">&#9660;</button><div class="tp-label">sec</div></div>
+    </div>
+    <div id="presets"></div>
+    <div class="time-picker" id="alarm-picker">
+      <div class="tp-col"><button class="tp-arrow" data-f="ah" data-d="1">&#9650;</button><div class="tp-val" id="tp-ah" data-f="ah" tabindex="0">07</div><button class="tp-arrow" data-f="ah" data-d="-1">&#9660;</button><div class="tp-label">hr</div></div>
+      <div class="tp-colon">:</div>
+      <div class="tp-col"><button class="tp-arrow" data-f="am" data-d="1">&#9650;</button><div class="tp-val" id="tp-am" data-f="am" tabindex="0">00</div><button class="tp-arrow" data-f="am" data-d="-1">&#9660;</button><div class="tp-label">min</div></div>
+    </div>
+    <div id="action-row">
+      <button class="act-btn primary" id="act1"></button>
+      <button class="act-btn" id="act2"></button>
+      <button class="act-btn" id="act3"></button>
+    </div>
+    <div class="status-text" id="status"></div>
+  </div>
+
+  <!-- Live Activity -->
+  <div id="live-activity">
+    <div id="la-prompt">
+      <div class="la-msg">Connect Spotify in Settings</div>
+      <button class="act-btn" id="la-open-settings">Open Settings</button>
+    </div>
+    <div id="np-card">
+      <div id="np-placeholder"><svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg></div>
+      <img id="np-art" style="display:none" alt="">
+      <div id="np-info"><div id="np-track">Not Playing</div><div id="np-artist"></div></div>
+      <div id="np-progress"><div id="np-progress-fill"></div></div>
+      <div id="np-controls">
+        <button class="np-btn skip" id="np-prev" title="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+        <button class="np-btn play-btn" id="np-play" title="Play/Pause"><svg id="ico-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg id="ico-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6zm8-14v14h4V5z"/></svg></button>
+        <button class="np-btn skip" id="np-next" title="Next"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+      </div>
+      <div id="np-empty"></div>
+    </div>
+  </div>
+
+  <div id="laps"></div>
+</div>
+
+<div id="bottom-ui">
+  <div id="date"></div>
+  <div id="nav-row">
+    <button class="nav-btn active" data-mode="clock">Clock</button>
+    <button class="nav-btn" data-mode="timer">Timer</button>
+    <button class="nav-btn" data-mode="stopwatch">Stopwatch</button>
+    <button class="nav-btn" data-mode="alarm">Alarm</button>
+    <button class="nav-btn" data-mode="live">Live Activity</button>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let is24=true,hideTimer=null,mode='clock';
+
+/* ---- Settings ---- */
+$('openSettings').addEventListener('click',()=>$('settings-overlay').classList.add('open'));
+$('closeSettings').addEventListener('click',()=>$('settings-overlay').classList.remove('open'));
+$('settings-backdrop').addEventListener('click',()=>$('settings-overlay').classList.remove('open'));
+$('la-open-settings').addEventListener('click',()=>$('settings-overlay').classList.add('open'));
+
+/* ---- Auto-hide ---- */
+function showUI(){$('controls').classList.remove('hidden');$('bottom-ui').classList.remove('hidden');clearTimeout(hideTimer);hideTimer=setTimeout(()=>{$('controls').classList.add('hidden');$('bottom-ui').classList.add('hidden');},3000);}
+document.addEventListener('mousemove',showUI);document.addEventListener('click',showUI);document.addEventListener('keydown',showUI);showUI();
+
+/* ---- Theme / Format ---- */
+$('toggleTheme').addEventListener('click',()=>{const d=document.body.classList.contains('dark');document.body.classList.toggle('dark',!d);document.body.classList.toggle('light',d);$('toggleTheme').textContent=d?'Dark':'Light';});
+$('toggleFormat').addEventListener('click',()=>{is24=!is24;$('toggleFormat').textContent=is24?'24H':'12H';$('ampm').classList.toggle('visible',!is24&&mode==='clock');setTimeout(autoFit,550);});
+
+/* ---- Digits ---- */
+function makeDigit(){const el=document.createElement('div');el.className='digit';const t=document.createElement('div');t.className='digit-track';for(let i=0;i<10;i++){const n=document.createElement('div');n.className='num';n.textContent=i;t.appendChild(n);}el.appendChild(t);el._track=t;el._val=-1;return el;}
+function setDigit(el,v){if(el._val===v)return;el.classList.add('changing');el._track.style.transform=`translateY(-${v*10}%)`;el._track.querySelectorAll('.num').forEach((n,i)=>n.classList.toggle('active',i===v));el._val=v;setTimeout(()=>el.classList.remove('changing'),500);}
+function setDisplay(h,m,s){[h,m,s].forEach((v,i)=>{const str=String(v).padStart(2,'0');setDigit(groups[i][0],+str[0]);setDigit(groups[i][1],+str[1]);});}
+const groups=['hh','mm','ss'].map(id=>{const g=$(id),d0=makeDigit(),d1=makeDigit();g.appendChild(d0);g.appendChild(d1);return[d0,d1];});
+
+/* ---- Time picker ---- */
+const tpState={th:0,tm:5,ts:0,ah:7,am:0};
+const tpLimits={th:[0,99],tm:[0,59],ts:[0,59],ah:[0,23],am:[0,59]};
+document.querySelectorAll('.tp-arrow').forEach(b=>{
+  const repeat=dir=>{const f=b.dataset.f,d=parseInt(b.dataset.d)*dir;const[mn,mx]=tpLimits[f];tpState[f]=(tpState[f]+d+mx-mn+1)%(mx-mn+1)+mn;$('tp-'+f).textContent=String(tpState[f]).padStart(2,'0');syncPickerToDisplay();};
+  b.addEventListener('click',()=>repeat(1));let iv;b.addEventListener('mousedown',()=>{iv=setInterval(()=>repeat(1),120);});window.addEventListener('mouseup',()=>clearInterval(iv));
+});
+
+let tpActive=null,tpBuf='';
+const tpOrder={th:'tm',tm:'ts',ts:null,ah:'am',am:null};
+const allTpVals=document.querySelectorAll('.tp-val[data-f]');
+function tpSelect(el){allTpVals.forEach(v=>v.classList.remove('active'));tpActive=el?el.dataset.f:null;tpBuf='';if(el){el.classList.add('active');el.focus();}}
+function tpCommit(){if(!tpActive||!tpBuf)return;const[mn,mx]=tpLimits[tpActive];let v=parseInt(tpBuf)||0;v=Math.max(mn,Math.min(mx,v));tpState[tpActive]=v;$('tp-'+tpActive).textContent=String(v).padStart(2,'0');syncPickerToDisplay();}
+function tpAdvance(){tpCommit();const next=tpOrder[tpActive];if(next)tpSelect($('tp-'+next));else tpSelect(null);}
+function syncPickerToDisplay(){if(mode==='timer'&&!tmrRunning&&!tmrPaused)setDisplay(tpState.th,tpState.tm,tpState.ts);}
+allTpVals.forEach(el=>{
+  el.addEventListener('click',e=>{e.stopPropagation();tpSelect(el);});
+  el.addEventListener('keydown',e=>{
+    if(e.key>='0'&&e.key<='9'){e.preventDefault();tpBuf+=e.key;const[mn,mx]=tpLimits[tpActive];let v=parseInt(tpBuf)||0;v=Math.max(mn,Math.min(mx,v));$('tp-'+tpActive).textContent=String(v).padStart(2,'0');tpState[tpActive]=v;syncPickerToDisplay();if(tpBuf.length>=2)tpAdvance();}
+    else if(e.key==='Tab'||e.key==='ArrowRight'){e.preventDefault();tpAdvance();}
+    else if(e.key==='ArrowLeft'){e.preventDefault();tpCommit();const keys=Object.keys(tpOrder);const i=keys.indexOf(tpActive);if(i>0)tpSelect($('tp-'+keys[i-1]));}
+    else if(e.key==='ArrowUp'){e.preventDefault();const[mn,mx]=tpLimits[tpActive];tpState[tpActive]=tpState[tpActive]+1>mx?mn:tpState[tpActive]+1;$('tp-'+tpActive).textContent=String(tpState[tpActive]).padStart(2,'0');tpBuf='';syncPickerToDisplay();}
+    else if(e.key==='ArrowDown'){e.preventDefault();const[mn,mx]=tpLimits[tpActive];tpState[tpActive]=tpState[tpActive]-1<mn?mx:tpState[tpActive]-1;$('tp-'+tpActive).textContent=String(tpState[tpActive]).padStart(2,'0');tpBuf='';syncPickerToDisplay();}
+    else if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();tpCommit();tpSelect(null);}
+    else if(e.key==='Backspace'){e.preventDefault();tpBuf=tpBuf.slice(0,-1);if(tpBuf){const v=parseInt(tpBuf)||0;$('tp-'+tpActive).textContent=String(v).padStart(2,'0');tpState[tpActive]=v;}else{tpState[tpActive]=0;$('tp-'+tpActive).textContent='00';}syncPickerToDisplay();}
+  });
+});
+document.addEventListener('click',()=>{if(tpActive){tpCommit();tpSelect(null);}});
+
+/* ---- Mode switch ---- */
+const navBtns=document.querySelectorAll('.nav-btn[data-mode]');
+navBtns.forEach(b=>b.addEventListener('click',()=>{switchMode(b.dataset.mode);}));
+
+function hideAll(){
+  $('action-row').classList.remove('visible');$('presets').classList.remove('visible');
+  $('timer-picker').classList.remove('visible');$('alarm-picker').classList.remove('visible');
+  $('ms-display').classList.remove('visible');$('laps').classList.remove('visible');
+  $('status').textContent='';$('ampm').classList.remove('visible');
+  $('live-activity').classList.remove('visible');
+  $('digit-row').classList.remove('compact');
+  document.body.classList.remove('alarm-ring');
+  clearInterval(spPollInterval);
+}
+
+function switchMode(m){
+  mode=m;
+  navBtns.forEach(b=>b.classList.toggle('active',b.dataset.mode===m));
+  hideAll();
+  $('date').style.opacity=m==='clock'?'':'0';
+  $('sub-ui').classList.toggle('collapsed',m==='clock'||m==='live');
+  if(m==='clock'){$('digit-row').classList.add('clock-center');$('ampm').classList.toggle('visible',!is24);renderClock();setTimeout(autoFit,550);}
+  else if(m==='timer'){$('digit-row').classList.remove('clock-center');showTimerUI();autoFit();}
+  else if(m==='stopwatch'){$('digit-row').classList.remove('clock-center');showSwUI();autoFit();}
+  else if(m==='alarm'){$('digit-row').classList.remove('clock-center');showAlarmUI();autoFit();}
+  else if(m==='live'){$('digit-row').classList.remove('clock-center');$('digit-row').classList.add('compact');$('live-activity').classList.add('visible');showLiveActivity();autoFit();}
+}
+
+/* ==== CLOCK ==== */
+function renderClock(){const now=new Date();let h=now.getHours();const m=now.getMinutes(),s=now.getSeconds();if(!is24){$('ampm').textContent=h>=12?'PM':'AM';h=h%12||12;}setDisplay(h,m,s);$('date').textContent=now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
+
+/* ==== TIMER ==== */
+let tmrEnd=0,tmrLeft=0,tmrRunning=false,tmrPaused=false,tmrInterval=null;
+function showTimerUI(){
+  $('action-row').classList.add('visible');
+  if(!tmrRunning&&!tmrPaused){$('timer-picker').classList.add('visible');$('presets').classList.add('visible');buildPresets();setDisplay(tpState.th,tpState.tm,tpState.ts);$('act1').textContent='Start';$('act1').className='act-btn primary';$('act2').textContent='Reset';$('act2').style.display='none';$('act3').style.display='none';}
+  else{$('timer-picker').classList.remove('visible');$('presets').classList.remove('visible');showTimerTime();$('act1').textContent=tmrRunning?'Pause':'Resume';$('act1').className=tmrRunning?'act-btn danger':'act-btn primary';$('act2').textContent='Reset';$('act2').style.display='';$('act3').style.display='none';}
+  $('act1').onclick=tmrStartPause;$('act2').onclick=tmrReset;
+}
+function buildPresets(){const ps=[{l:'1m',s:60},{l:'3m',s:180},{l:'5m',s:300},{l:'10m',s:600},{l:'15m',s:900},{l:'30m',s:1800},{l:'1h',s:3600}];$('presets').innerHTML='';ps.forEach(p=>{const b=document.createElement('button');b.className='preset-btn';b.textContent=p.l;b.addEventListener('click',()=>{const t=p.s;tpState.th=Math.floor(t/3600);tpState.tm=Math.floor((t%3600)/60);tpState.ts=t%60;$('tp-th').textContent=String(tpState.th).padStart(2,'0');$('tp-tm').textContent=String(tpState.tm).padStart(2,'0');$('tp-ts').textContent=String(tpState.ts).padStart(2,'0');setDisplay(tpState.th,tpState.tm,tpState.ts);});$('presets').appendChild(b);});}
+function tmrStartPause(){if(tmrRunning){tmrRunning=false;tmrPaused=true;tmrLeft=Math.max(0,Math.round((tmrEnd-Date.now())/1000));clearInterval(tmrInterval);showTimerUI();}else{if(!tmrPaused){const total=tpState.th*3600+tpState.tm*60+tpState.ts;if(total<=0)return;tmrLeft=total;}tmrEnd=Date.now()+tmrLeft*1000;tmrRunning=true;tmrPaused=false;tmrInterval=setInterval(tmrTick,250);showTimerUI();}}
+function tmrReset(){tmrRunning=false;tmrPaused=false;clearInterval(tmrInterval);tmrLeft=0;document.body.classList.remove('alarm-ring');if(mode==='timer')showTimerUI();}
+function tmrTick(){tmrLeft=Math.max(0,Math.round((tmrEnd-Date.now())/1000));if(mode==='timer')showTimerTime();if(tmrLeft<=0){clearInterval(tmrInterval);tmrRunning=false;tmrPaused=false;document.body.classList.add('alarm-ring');if(mode==='timer')showTimerUI();}}
+function showTimerTime(){const t=Math.max(0,tmrLeft);setDisplay(Math.floor(t/3600),Math.floor((t%3600)/60),t%60);}
+
+/* ==== STOPWATCH ==== */
+let swBase=0,swStart=0,swRunning=false,swInterval=null,swLaps=[];
+function showSwUI(){$('ms-display').classList.add('visible');$('laps').classList.add('visible');$('action-row').classList.add('visible');$('act1').textContent=swRunning?'Pause':(swBase>0?'Resume':'Start');$('act1').className=swRunning?'act-btn danger':'act-btn primary';$('act2').textContent='Lap';$('act2').style.display='';$('act3').textContent='Reset';$('act3').style.display='';renderSwTime();renderLaps();$('act1').onclick=swToggle;$('act2').onclick=swLap;$('act3').onclick=swReset;}
+function swToggle(){if(swRunning){swBase+=Date.now()-swStart;swRunning=false;clearInterval(swInterval);}else{swStart=Date.now();swRunning=true;swInterval=setInterval(()=>{if(mode==='stopwatch')renderSwTime();},30);}if(mode==='stopwatch')showSwUI();}
+function swLap(){const t=swRunning?swBase+(Date.now()-swStart):swBase;if(t===0)return;swLaps.push(t);if(mode==='stopwatch')renderLaps();}
+function swReset(){swRunning=false;clearInterval(swInterval);swBase=0;swLaps=[];if(mode==='stopwatch'){$('ms-display').textContent='.00';setDisplay(0,0,0);showSwUI();}}
+function renderSwTime(){const t=swRunning?swBase+(Date.now()-swStart):swBase;const totalS=Math.floor(t/1000),ms=Math.floor((t%1000)/10);setDisplay(Math.floor(totalS/3600),Math.floor((totalS%3600)/60),totalS%60);$('ms-display').textContent='.'+String(ms).padStart(2,'0');}
+function renderLaps(){$('laps').innerHTML='';swLaps.forEach((t,i)=>{const d=document.createElement('div');d.className='lap';d.textContent=`Lap ${i+1}  ${fmtMs(t)}`;$('laps').appendChild(d);});}
+function fmtMs(t){const s=Math.floor(t/1000),ms=Math.floor((t%1000)/10);return`${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}.${String(ms).padStart(2,'0')}`;}
+
+/* ==== ALARM ==== */
+let alarmH=null,alarmM=null,alarmActive=false;
+function showAlarmUI(){$('alarm-picker').classList.add('visible');$('action-row').classList.add('visible');$('act1').textContent=alarmActive?'Cancel':'Set Alarm';$('act1').className=alarmActive?'act-btn danger':'act-btn primary';$('act2').style.display='none';$('act3').style.display='none';$('status').textContent=alarmActive?`Alarm set for ${String(alarmH).padStart(2,'0')}:${String(alarmM).padStart(2,'0')}`:'';renderAlarmClock();$('act1').onclick=()=>{if(alarmActive){alarmActive=false;alarmH=null;alarmM=null;document.body.classList.remove('alarm-ring');}else{alarmH=tpState.ah;alarmM=tpState.am;alarmActive=true;}if(mode==='alarm')showAlarmUI();};}
+function renderAlarmClock(){const now=new Date();setDisplay(now.getHours(),now.getMinutes(),now.getSeconds());}
+function checkAlarm(){if(!alarmActive)return;const now=new Date();if(now.getHours()===alarmH&&now.getMinutes()===alarmM&&now.getSeconds()===0)document.body.classList.add('alarm-ring');}
+
+/* ==== LIVE ACTIVITY (Spotify) ==== */
+let spToken=null,spPollInterval=null,spIsPlaying=false;
+
+(function checkHash(){const hash=window.location.hash.substring(1);const params=new URLSearchParams(hash);if(params.get('access_token')){spToken=params.get('access_token');localStorage.setItem('sp_token',spToken);history.replaceState(null,'',window.location.pathname);}else{spToken=localStorage.getItem('sp_token');}})();
+
+// Settings: Spotify connect
+if(localStorage.getItem('sp_client_id'))$('s-sp-id').value=localStorage.getItem('sp_client_id');
+updateSpStatus();
+
+$('s-sp-connect').addEventListener('click',()=>{
+  const cid=$('s-sp-id').value.trim();if(!cid)return;
+  localStorage.setItem('sp_client_id',cid);
+  const redirect=window.location.href.split('#')[0];
+  const scopes='user-read-currently-playing user-read-playback-state user-modify-playback-state';
+  window.location.href=`https://accounts.spotify.com/authorize?client_id=${cid}&response_type=token&redirect_uri=${encodeURIComponent(redirect)}&scope=${encodeURIComponent(scopes)}&show_dialog=false`;
+});
+
+$('s-sp-disconnect').addEventListener('click',()=>{
+  spToken=null;localStorage.removeItem('sp_token');localStorage.removeItem('sp_client_id');
+  $('s-sp-id').value='';clearInterval(spPollInterval);updateSpStatus();
+  if(mode==='live')showLiveActivity();
+});
+
+function updateSpStatus(){
+  const connected=!!spToken;
+  $('s-sp-status').textContent=connected?'Connected':'Not connected';
+  $('s-sp-status').classList.toggle('connected',connected);
+  $('s-sp-connect').style.display=connected?'none':'';
+  $('s-sp-disconnect').style.display=connected?'':'none';
+}
+
+function showLiveActivity(){
+  if(spToken){$('la-prompt').style.display='none';$('np-card').classList.add('visible');startSpotifyPoll();}
+  else{$('la-prompt').style.display='flex';$('np-card').classList.remove('visible');}
+}
+
+function startSpotifyPoll(){clearInterval(spPollInterval);fetchNowPlaying();spPollInterval=setInterval(fetchNowPlaying,3000);}
+
+async function fetchNowPlaying(){
+  if(!spToken)return;
+  try{
+    const r=await fetch('https://api.spotify.com/v1/me/player/currently-playing',{headers:{Authorization:'Bearer '+spToken}});
+    if(r.status===204||r.status===202){showNoPlayback();return;}
+    if(r.status===401){spToken=null;localStorage.removeItem('sp_token');updateSpStatus();if(mode==='live')showLiveActivity();return;}
+    const d=await r.json();if(!d||!d.item){showNoPlayback();return;}
+    const track=d.item;const art=track.album&&track.album.images&&track.album.images[0]?track.album.images[0].url:null;
+    spIsPlaying=d.is_playing;
+    $('np-track').textContent=track.name||'Unknown';
+    $('np-artist').textContent=(track.artists||[]).map(a=>a.name).join(', ');
+    if(art){$('np-art').src=art;$('np-art').style.display='';$('np-placeholder').style.display='none';}
+    else{$('np-art').style.display='none';$('np-placeholder').style.display='flex';}
+    if(d.progress_ms!=null&&track.duration_ms){$('np-progress-fill').style.width=(d.progress_ms/track.duration_ms)*100+'%';}
+    $('ico-play').style.display=spIsPlaying?'none':'';
+    $('ico-pause').style.display=spIsPlaying?'':'none';
+    $('np-empty').textContent='';
+  }catch(e){showNoPlayback();}
+}
+
+function showNoPlayback(){$('np-track').textContent='Not Playing';$('np-artist').textContent='';$('np-art').style.display='none';$('np-placeholder').style.display='flex';$('np-progress-fill').style.width='0';$('ico-play').style.display='';$('ico-pause').style.display='none';$('np-empty').textContent='Play something on Spotify';}
+
+async function spCmd(endpoint,method='POST'){if(!spToken)return;try{await fetch('https://api.spotify.com/v1/me/player/'+endpoint,{method,headers:{Authorization:'Bearer '+spToken}});setTimeout(fetchNowPlaying,300);}catch(e){}}
+$('np-play').addEventListener('click',()=>spCmd(spIsPlaying?'pause':'play','PUT'));
+$('np-next').addEventListener('click',()=>spCmd('next'));
+$('np-prev').addEventListener('click',()=>spCmd('previous'));
+
+/* ---- Auto-fit ---- */
+function autoFit(){const row=$('digit-row');if(row.classList.contains('compact'))return;row.style.transition='none';row.style.transform='scale(1)';const natural=row.scrollWidth;const avail=window.innerWidth*0.9;const scale=Math.min(1,avail/natural);requestAnimationFrame(()=>{row.style.transition='';requestAnimationFrame(()=>{row.style.transform=`scale(${scale})`;});});}
+window.addEventListener('resize',autoFit);
+
+/* ---- Master tick ---- */
+function masterTick(){if(mode==='clock')renderClock();else if(mode==='alarm')renderAlarmClock();else if(mode==='live'){const now=new Date();let h=now.getHours();const m=now.getMinutes(),s=now.getSeconds();if(!is24){h=h%12||12;}setDisplay(h,m,s);}checkAlarm();}
+masterTick();autoFit();
+setTimeout(()=>{masterTick();setInterval(masterTick,1000);},1000-new Date().getMilliseconds());
+
+if(spToken&&window.location.hash.includes('access_token')){switchMode('live');}
+</script>
+</body>
+</html>
