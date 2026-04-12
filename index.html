@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#000000">
 <title>Clock</title>
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.cdnfonts.com/css/recoleta" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;font-family:'Quicksand',sans-serif}
@@ -25,7 +25,7 @@ body.light{background:#f3f1ed;color:#111}
 #amb-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 30%,rgba(0,0,0,.55) 100%)}
 
 /* LAYOUT */
-#app{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;width:100%;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+#app{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;width:100%;overflow:hidden;scrollbar-width:none}
 #app::-webkit-scrollbar{display:none}
 
 /* TOOLBAR */
@@ -50,10 +50,10 @@ body.dark .tb-icon svg{fill:rgba(255,255,255,.38)}
 body.light .tb-icon svg{fill:rgba(0,0,0,.32)}
 
 /* CONTENT */
-#content{display:flex;flex-direction:column;align-items:center;min-height:100%;padding:clamp(3.8rem,11vh,5.5rem) clamp(.8rem,4vw,2rem) clamp(1rem,4vh,2rem);gap:clamp(.7rem,1.8vh,1.4rem);justify-content:center}
+#content{display:flex;flex-direction:column;align-items:center;height:100%;min-height:0;padding:clamp(2.5rem,7vh,4rem) clamp(.8rem,4vw,2rem) clamp(.5rem,2vh,1rem);gap:clamp(.4rem,1.5vh,1.2rem);justify-content:center}
 
 /* CLOCK */
-#clock-wrap{display:flex;flex-direction:column;align-items:center;gap:.35rem;overflow:hidden;transition:opacity .5s ease,transform .5s ease,max-height .55s cubic-bezier(.4,0,.2,1),margin .5s ease;max-height:300px}
+#clock-wrap{display:flex;flex-direction:column;align-items:center;gap:.35rem;overflow:hidden;flex-shrink:1;min-height:0;transition:opacity .5s ease,transform .5s ease,max-height .55s cubic-bezier(.4,0,.2,1),margin .5s ease;max-height:30vh}
 #clock-wrap.off{opacity:0;transform:scale(.88) translateY(-16px);max-height:0!important;margin:0!important;pointer-events:none}
 #digit-row{display:flex;align-items:center;transform-origin:center center;white-space:nowrap}
 .grp{display:flex;gap:clamp(1px,.3vw,4px);align-items:center}
@@ -61,13 +61,13 @@ body.light .tb-icon svg{fill:rgba(0,0,0,.32)}
 .sep span{display:block;width:clamp(.22rem,.45vw,.45rem);height:clamp(.22rem,.45vw,.45rem);border-radius:50%;transition:background .5s ease}
 body.dark .sep span{background:#282828}
 body.light .sep span{background:#c5c2bb}
-#ampm-label{font-family:'Recoleta',serif;font-weight:300;font-size:clamp(1.8rem,5.5vw,6.5rem);letter-spacing:.02em;display:inline-flex;align-items:center;overflow:hidden;max-width:0;opacity:0;white-space:nowrap;margin-left:0;transition:color .5s ease,max-width .5s cubic-bezier(.4,0,.2,1),opacity .5s ease,margin .5s ease}
+#ampm-label{font-family:'',serif;font-weight:300;font-size:clamp(1.4rem,min(5.5vw, 5vh),6.5rem);letter-spacing:.02em;display:inline-flex;align-items:center;overflow:hidden;max-width:0;opacity:0;white-space:nowrap;margin-left:0;transition:color .5s ease,max-width .5s cubic-bezier(.4,0,.2,1),opacity .5s ease,margin .5s ease}
 #ampm-label.show{max-width:9rem;opacity:1;margin-left:clamp(.3rem,.7vw,.85rem)}
 body.dark #ampm-label{color:#ccc}
 body.light #ampm-label{color:#333}
-.digit{position:relative;width:clamp(1.7rem,5.2vw,6.2rem);height:clamp(2.8rem,8.5vw,10rem);overflow:hidden}
+.digit{position:relative;width:clamp(1.4rem,min(5.2vw, 4.5vh),6.2rem);height:clamp(2.2rem,min(8.5vw, 8vh),10rem);overflow:hidden}
 .digit-track{position:absolute;top:0;left:0;width:100%;transition:transform .45s cubic-bezier(.4,0,.2,1)}
-.digit-track .num{height:clamp(2.8rem,8.5vw,10rem);display:flex;align-items:center;justify-content:center;font-family:'Recoleta',serif;font-size:clamp(2.2rem,7vw,8rem);font-weight:300;letter-spacing:.01em;user-select:none;transition:color .5s ease}
+.digit-track .num{height:clamp(2.2rem,min(8.5vw, 8vh),10rem);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:clamp(1.8rem,min(7vw, 7vh),8rem);font-weight:300;letter-spacing:.01em;user-select:none;transition:color .5s ease}
 body.dark .digit-track .num{color:#e5e5e5}
 body.light .digit-track .num{color:#1a1a1a}
 #date-line{font-family:'Quicksand',sans-serif;font-weight:400;font-size:clamp(.52rem,.85vw,.82rem);letter-spacing:.2em;text-transform:uppercase;transition:color .5s ease}
@@ -79,9 +79,9 @@ body.light #date-line{color:#bfbcb4}
    ══════════════════════════════════════ */
 #weather-wrap{
   width:100%;max-width:520px;
-  overflow:hidden;
+  overflow:hidden; flex-shrink:1; min-height:0; display:flex; flex-direction:column; justify-content:center;
   transition:opacity .5s ease,transform .5s ease,max-height .55s cubic-bezier(.4,0,.2,1),margin .5s ease;
-  max-height:400px;
+  max-height:30vh;
 }
 #weather-wrap.off{opacity:0;transform:scale(.93) translateY(-10px);max-height:0!important;margin:0!important;pointer-events:none}
 
@@ -89,12 +89,14 @@ body.light #date-line{color:#bfbcb4}
   border-radius:clamp(18px,2.5vw,28px);
   position:relative;overflow:hidden;
   aspect-ratio:2/1;
-  min-height:140px;
+  max-height:22vh;
+  width:100%;
+  margin:0 auto;
   box-shadow:0 16px 60px rgba(0,0,0,.45);
   transition:background 1.4s ease;
 }
 
-/* Sky gradient layer — changes with time of day */
+/* Sky gradient layer */
 #wx-sky{
   position:absolute;inset:0;
   transition:background 2s ease;
@@ -124,7 +126,7 @@ body.light #date-line{color:#bfbcb4}
 }
 .wx-label{font-family:'Quicksand',sans-serif;font-weight:600;font-size:clamp(.85rem,1.6vw,1.4rem);color:#fff;letter-spacing:.01em;text-shadow:0 1px 12px rgba(0,0,0,.3)}
 .wx-sub{font-family:'Quicksand',sans-serif;font-weight:400;font-size:clamp(.6rem,1vw,.88rem);color:rgba(255,255,255,.75);margin-top:.18rem;text-shadow:0 1px 8px rgba(0,0,0,.3)}
-.wx-temp-big{font-family:'Recoleta',serif;font-weight:300;font-size:clamp(1.6rem,3.5vw,3rem);color:#fff;line-height:1;letter-spacing:.01em;text-shadow:0 2px 16px rgba(0,0,0,.25)}
+.wx-temp-big{font-family:'Fraunces',serif;font-weight:300;font-size:clamp(1.6rem,3.5vw,3rem);color:#fff;line-height:1;letter-spacing:.01em;text-shadow:0 2px 16px rgba(0,0,0,.25)}
 
 /* Loading state */
 #wx-loading-msg{
@@ -137,22 +139,22 @@ body.light #date-line{color:#bfbcb4}
 /* MUSIC ART */
 #music-wrap{
   width:100%;max-width:700px;
-  overflow:hidden;
+  overflow:hidden; flex-shrink:1; min-height:0;
   transition:opacity .5s ease,transform .5s ease,max-height .55s cubic-bezier(.4,0,.2,1),margin .5s ease;
-  max-height:600px;
+  max-height:45vh;
 }
 #music-wrap.off{opacity:0;transform:scale(.93) translateY(-10px);max-height:0!important;margin:0!important;pointer-events:none}
 
 /* Fan / Carousel */
 #crs-stage{
-  width:100%;height:clamp(220px,35vw,360px);
+  width:100%;height:clamp(120px,22vh,360px);
   position:relative;perspective:1000px;
   display:flex;align-items:center;justify-content:center;
   margin-bottom:clamp(.4rem,1vw,.8rem);
 }
 .crs-card{
   position:absolute;
-  width:clamp(130px,20vw,220px);height:clamp(130px,20vw,220px);
+  width:clamp(100px,20vh,220px);height:clamp(100px,20vh,220px);
   border-radius:clamp(14px,2vw,22px);
   overflow:hidden;
   box-shadow:0 20px 60px rgba(0,0,0,.55);
@@ -196,10 +198,8 @@ body.light #np-prog-bar{background:rgba(0,0,0,.1)}
 body.dark #np-prog-fill{background:rgba(255,255,255,.7)}
 body.light #np-prog-fill{background:rgba(0,0,0,.5)}
 
-/* Controls pill */
-#np-controls-bar{display:flex;align-items:center;justify-content:center;gap:0;border-radius:100px;padding:clamp(.5rem,1.2vw,.9rem) clamp(1rem,2.5vw,2rem);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transition:background .5s ease,border .5s ease}
-body.dark #np-controls-bar{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);box-shadow:0 8px 32px rgba(0,0,0,.4)}
-body.light #np-controls-bar{background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.9);box-shadow:0 8px 32px rgba(0,0,0,.08)}
+/* Controls pill - UI CLEANED UP */
+#np-controls-bar{display:flex;align-items:center;justify-content:center;gap:.6rem;padding:clamp(.5rem,1vh,.9rem) 0;transition:all .5s ease}
 .np-btn{background:none;border:none;cursor:pointer;outline:none;display:flex;align-items:center;justify-content:center;border-radius:50%;padding:clamp(.35rem,.7vw,.6rem);transition:all .2s ease}
 .np-btn:hover{transform:scale(1.15)}
 .np-btn:active{transform:scale(.88)}
@@ -269,9 +269,9 @@ body.dark .theme-btn.active{background:rgba(255,255,255,.88);color:#000;border-c
 body.light .theme-btn.active{background:rgba(0,0,0,.82);color:#f3f1ed;border-color:transparent}
 
 @media(max-width:480px){
-  #content{padding:4rem .5rem 1.2rem;gap:.6rem;justify-content:flex-start;padding-top:max(4rem,calc(env(safe-area-inset-top) + 3.5rem))}
+  #content{padding:max(4rem,calc(env(safe-area-inset-top) + 3.5rem)) .5rem 1rem;gap:.4rem;justify-content:center;}
   #music-wrap,#weather-wrap{max-width:100%}
-  .crs-card{width:clamp(100px,42vw,160px);height:clamp(100px,42vw,160px)}
+  .crs-card{width:clamp(90px,min(42vw, 22vh),160px);height:clamp(90px,min(42vw, 22vh),160px)}
 }
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 #clock-wrap{animation:fadeUp .65s ease both}
@@ -286,7 +286,6 @@ body.light .theme-btn.active{background:rgba(0,0,0,.82);color:#f3f1ed;border-col
   <div id="amb-vignette"></div>
 </div>
 
-<!-- TOOLBAR -->
 <div id="toolbar">
   <div class="tb-left">
     <button class="tb-pill" id="btn-format">24H</button>
@@ -301,11 +300,10 @@ body.light .theme-btn.active{background:rgba(0,0,0,.82);color:#f3f1ed;border-col
   </div>
 </div>
 
-<!-- SETTINGS -->
 <div id="settings-overlay">
   <div id="settings-backdrop"></div>
   <div id="settings-panel">
-    <button class="sp-close" id="sp-close">&times;</button>
+    <button class="sp-close" id="sp-close">×</button>
     <div class="sp-title">Settings</div>
     <div class="sp-section">
       <div class="sp-lbl">Appearance</div>
@@ -330,11 +328,9 @@ body.light .theme-btn.active{background:rgba(0,0,0,.82);color:#f3f1ed;border-col
   </div>
 </div>
 
-<!-- MAIN -->
 <div id="app">
   <div id="content">
 
-    <!-- Clock -->
     <div id="clock-wrap">
       <div id="digit-row">
         <div class="grp" id="hh"></div>
@@ -347,7 +343,6 @@ body.light .theme-btn.active{background:rgba(0,0,0,.82);color:#f3f1ed;border-col
       <div id="date-line"></div>
     </div>
 
-    <!-- Weather — cinematic sky card -->
     <div id="weather-wrap">
       <div id="weather-card">
         <div id="wx-sky"></div>
@@ -364,7 +359,6 @@ body.light .theme-btn.active{background:rgba(0,0,0,.82);color:#f3f1ed;border-col
       </div>
     </div>
 
-    <!-- Music Art -->
     <div id="music-wrap" class="off">
       <div id="now-playing" style="display:none">
         <div id="crs-stage"></div>
@@ -396,7 +390,6 @@ body.light .theme-btn.active{background:rgba(0,0,0,.82);color:#f3f1ed;border-col
           </button>
         </div>
       </div>
-      <!-- NO music: show nothing (empty) -->
     </div>
 
   </div>
@@ -544,7 +537,6 @@ const SKY={
   },
 };
 
-// WMO code → description (no emojis)
 const WX_DESC={
   0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',
   45:'Fog',48:'Icy fog',
@@ -555,7 +547,7 @@ const WX_DESC={
   95:'Thunderstorm',99:'Heavy thunderstorm',
 };
 
-let wxData=null; // stored weather data for arc redraws
+let wxData=null;
 
 function getPeriod(hour){
   if(hour>=5&&hour<7)return'dawn';
@@ -567,16 +559,11 @@ function getPeriod(hour){
   return'night';
 }
 
-// t = 0..1 along the arc (based on hour)
-// For sun: rises ~6, sets ~18 → map hour 6..18 to 0..1
-// For moon: rises ~18, sets ~6 → map accordingly
 function getSkyBodyProgress(hour,isNight){
   if(!isNight){
-    // Sun: clamp to 6..18
     const t=Math.max(0,Math.min(1,(hour-6)/12));
     return t;
   } else {
-    // Moon: 18..30 (30=6am next day)
     const h=hour<6?hour+24:hour;
     const t=Math.max(0,Math.min(1,(h-18)/12));
     return t;
@@ -601,37 +588,30 @@ function drawWeatherArc(){
   const sky=SKY[period];
   const t=getSkyBodyProgress(hour,isNight);
 
-  // Arc geometry: a half-ellipse that goes from bottom-left to bottom-right
-  // Rises from left edge (30% from bottom), peaks in center-top, sets at right edge
   const cx=W*0.5;
-  const cy=H*1.05;        // center of ellipse slightly below bottom
+  const cy=H*1.05;
   const rx=W*0.55;
   const ry=H*1.0;
 
-  // Draw glowing arc path
   ctx.beginPath();
-  ctx.ellipse(cx,cy,rx,ry,0,Math.PI,0,false); // top half (from left π to right 0)
+  ctx.ellipse(cx,cy,rx,ry,0,Math.PI,0,false);
   ctx.strokeStyle=sky.arc;
   ctx.lineWidth=1.5;
-  // feathered line via shadow
   ctx.shadowColor=sky.arc;
   ctx.shadowBlur=8;
   ctx.stroke();
   ctx.shadowBlur=0;
 
-  // Position of orb along arc (t=0→left, t=1→right, t=0.5→top)
-  const angle=Math.PI-(t*Math.PI); // π at t=0 (left), 0 at t=1 (right)
+  const angle=Math.PI-(t*Math.PI);
   const orbX=cx+rx*Math.cos(angle);
-  const orbY=cy+ry*Math.sin(angle); // sin is positive in upper half
+  const orbY=cy+ry*Math.sin(angle);
 
-  // Glow halo
   const grd=ctx.createRadialGradient(orbX,orbY,0,orbX,orbY,W*0.12);
   grd.addColorStop(0,sky.glow);
   grd.addColorStop(1,'rgba(0,0,0,0)');
   ctx.beginPath();ctx.arc(orbX,orbY,W*0.12,0,Math.PI*2);
   ctx.fillStyle=grd;ctx.fill();
 
-  // Orb core
   const orbR=W*0.028;
   ctx.beginPath();ctx.arc(orbX,orbY,orbR,0,Math.PI*2);
   ctx.fillStyle=sky.orb;
@@ -660,18 +640,15 @@ async function loadWeather(){
 
     wxData={tempC,code,city,period,sky};
 
-    // Apply sky gradient
     $('wx-sky').style.background=sky.bg;
     $('wx-period').textContent=sky.label;
     $('wx-desc').textContent=WX_DESC[code]||'';
     $('wx-temp').textContent=tempC+'°C';
 
-    // Show text, hide loading
     $('wx-loading-msg').style.display='none';
     $('wx-text').style.opacity='1';
     $('wx-text').style.transition='opacity .6s ease';
 
-    // Draw the arc after a tick so layout is settled
     requestAnimationFrame(()=>requestAnimationFrame(drawWeatherArc));
 
   }catch(e){
@@ -680,15 +657,14 @@ async function loadWeather(){
 }
 loadWeather();
 setInterval(loadWeather,10*60*1000);
-// Redraw arc every minute (orb moves)
 setInterval(()=>{if(wxData)drawWeatherArc();},60*1000);
 
 /* ═══════════════════════════════════════
    CAROUSEL
    ═══════════════════════════════════════ */
-function getCardSize(){return Math.min(window.innerWidth*.2,220,Math.max(100,window.innerWidth*.38));}
 function getSlotStyles(){
-  const sz=getCardSize(),gap=sz*.95;
+  // Grab absolute width dynamically so transitions and scale work on any viewport sizing
+  const sz=cardEls.length?cardEls[0].offsetWidth:150,gap=sz*.95;
   return[
     {tx:-gap*2,ry:28,sc:.62,op:.35,br:.4,z:1},
     {tx:-gap,ry:18,sc:.78,op:.65,br:.62,z:3},
