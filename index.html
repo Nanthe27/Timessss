@@ -10,41 +10,385 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0a0a0a;
-  --surface: #111111;
-  --surface2: #1a1a1a;
-  --border: rgba(255,255,255,0.06);
+  --bg: #0f0f0f;
+  --card: #1a1a1a;
+  --card2: #222222;
+  --border: rgba(255,255,255,0.07);
   --text: #f0ede8;
-  --muted: rgba(240,237,232,0.4);
+  --muted: rgba(240,237,232,0.45);
   --accent: #1DB954;
 }
 
 html, body {
-  height: 100%;
+  min-height: 100%;
   background: var(--bg);
   color: var(--text);
   font-family: 'DM Mono', monospace;
-  overflow-x: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
 }
 
 body::before {
   content: '';
   position: fixed; inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-  opacity: 0.028; pointer-events: none; z-index: 999;
+  opacity: 0.03; pointer-events: none; z-index: 999;
 }
 
-/* ===== SHARED ===== */
-.glow-orb {
+/* ===== GLOW ===== */
+.bg-glow {
   position: fixed;
-  width: 700px; height: 700px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(29,185,84,0.055) 0%, transparent 65%);
+  width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(29,185,84,0.06) 0%, transparent 65%);
   top: 50%; left: 50%; transform: translate(-50%,-50%);
+  pointer-events: none; transition: background 1.5s ease;
+}
+
+/* ===== SCREENS ===== */
+#auth-screen, #input-screen, #loading-screen, #card-screen {
+  width: 100%;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== AUTH ===== */
+#auth-screen {
+  text-align: center;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.brand {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: .72rem; letter-spacing: .32em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 3rem;
+}
+
+.auth-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 8vw, 3rem);
+  line-height: 1.08; letter-spacing: -.025em; margin-bottom: .6rem;
+}
+.auth-headline em { font-style: italic; color: var(--accent); }
+
+.auth-sub {
+  font-size: .7rem; color: var(--muted); line-height: 1.7;
+  margin-bottom: 2.5rem;
+}
+
+.btn-connect {
+  display: inline-flex; align-items: center; gap: .6rem;
+  padding: .85rem 1.8rem; background: var(--accent); color: #000;
+  border: none; border-radius: 8px;
+  font-family: 'DM Mono', monospace; font-size: .75rem; font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase; cursor: pointer;
+  transition: all .2s;
+}
+.btn-connect:hover { background: #1ed760; transform: translateY(-2px); box-shadow: 0 12px 30px rgba(29,185,84,.25); }
+.btn-connect svg { width: 18px; height: 18px; }
+
+.auth-note { font-size: .58rem; color: var(--muted); margin-top: 1.2rem; line-height: 1.6; }
+
+/* ===== INPUT ===== */
+#input-screen {
+  max-width: 380px; margin: 0 auto; text-align: center;
+}
+
+.user-pill {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .3rem .8rem .3rem .3rem;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 999px; margin-bottom: 2rem;
+}
+.user-pill img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+.user-pill span { font-size: .62rem; letter-spacing: .06em; color: var(--muted); }
+
+.input-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 6vw, 2.4rem);
+  line-height: 1.1; letter-spacing: -.02em; margin-bottom: .4rem;
+}
+.input-headline em { font-style: italic; color: var(--accent); }
+.input-sub { font-size: .68rem; color: var(--muted); margin-bottom: 1.75rem; }
+
+.field-wrap { position: relative; margin-bottom: .75rem; width: 100%; }
+.field-label {
+  font-size: .56rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); position: absolute; top: .8rem; left: 1rem; pointer-events: none;
+}
+input[type="text"] {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: .82rem;
+  padding: 1.75rem 1rem .6rem; outline: none; transition: border-color .2s;
+}
+input[type="text"]:focus { border-color: rgba(29,185,84,.35); }
+
+.btn-gen {
+  width: 100%; padding: .9rem; border: none; border-radius: 8px;
+  background: var(--accent); color: #000;
+  font-family: 'DM Mono', monospace; font-size: .75rem; font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: all .2s;
+}
+.btn-gen:hover { background: #1ed760; transform: translateY(-1px); }
+
+.error-msg { font-size: .65rem; color: #ff5c5c; margin-top: .6rem; display: none; }
+.input-hint { font-size: .6rem; color: var(--muted); margin-top: 1rem; line-height: 1.7; }
+.logout-btn {
+  background: none; border: none; color: var(--muted);
+  font-family: 'DM Mono', monospace; font-size: .58rem;
+  letter-spacing: .1em; cursor: pointer; margin-top: 1.5rem;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+
+/* ===== LOADING ===== */
+#loading-screen { gap: 1.2rem; }
+.loader-ring {
+  width: 34px; height: 34px;
+  border: 2px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .75s linear infinite;
+}
+.loading-text { font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+
+/* ===== CARD ===== */
+#card-screen { align-items: center; }
+
+.back-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-size: .6rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); background: none; border: none; cursor: pointer;
+  transition: color .2s; margin-bottom: 1.5rem; align-self: center;
+}
+.back-btn:hover { color: var(--text); }
+
+/* THE CARD — matches reference portrait shape */
+.music-card {
+  width: 100%;
+  max-width: 340px;
+  background: var(--card);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 40px 80px rgba(0,0,0,.6);
+  animation: fadeUp .6s cubic-bezier(.16,1,.3,1) both;
+}
+
+/* Album art — fills top ~55% like the photo in reference */
+.card-art {
+  width: 100%;
+  aspect-ratio: 1 / 1.05;
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  margin: 10px;
+  width: calc(100% - 20px);
+}
+
+.card-art img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  border-radius: 16px;
+}
+
+.card-art-placeholder {
+  width: 100%; height: 100%;
+  background: var(--card2);
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 16px;
+}
+
+.vinyl {
+  width: 50%; aspect-ratio: 1; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.06);
+  display: flex; align-items: center; justify-content: center;
+  animation: spin 8s linear infinite;
+}
+.vinyl-center {
+  width: 28%; aspect-ratio: 1; border-radius: 50%;
+  background: var(--bg); border: 2px solid rgba(255,255,255,.08);
+}
+
+/* Gradient overlay on art bottom */
+.card-art::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 40%;
+  background: linear-gradient(to top, var(--card), transparent);
   pointer-events: none;
 }
 
+/* Spotify badge top-right on art */
+.art-badge {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+  border-radius: 999px; padding: .3rem .6rem;
+  display: flex; align-items: center; gap: .35rem;
+  font-size: .55rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  border: 1px solid rgba(255,255,255,.08);
+}
+.art-badge svg { width: 12px; height: 12px; fill: var(--accent); }
+
+/* Progress bar overlaid on art bottom */
+.art-progress {
+  position: absolute; bottom: 12px; left: 14px; right: 14px; z-index: 2;
+}
+.prog-bar-bg { height: 2px; background: rgba(255,255,255,.15); border-radius: 999px; overflow: hidden; }
+.prog-bar-fill { height: 100%; background: var(--accent); border-radius: 999px; width: 0; transition: width 1.5s cubic-bezier(.16,1,.3,1); }
+.prog-times { display: flex; justify-content: space-between; font-size: .55rem; color: rgba(255,255,255,.4); margin-top: .35rem; }
+
+/* Card body */
+.card-body { padding: 4px 16px 16px; }
+
+/* Track title + artist */
+.card-track {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem; line-height: 1.2; letter-spacing: -.02em;
+  margin-bottom: .25rem;
+}
+
+.card-artist-row {
+  display: flex; align-items: center; gap: .4rem;
+  margin-bottom: 1rem;
+}
+.card-artist-name { font-size: .7rem; color: var(--muted); }
+.card-artist-name span { color: var(--text); }
+
+.verified {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 13px; height: 13px; background: var(--accent); border-radius: 50%; flex-shrink: 0;
+}
+.verified svg { width: 7px; height: 7px; }
+
+/* Divider */
+.card-divider { height: 1px; background: var(--border); margin-bottom: 1rem; }
+
+/* Stats row — like the 312 / 48 in the reference */
+.card-stats {
+  display: flex; align-items: center; gap: 1.2rem;
+  margin-bottom: 1rem;
+}
+.stat-item { display: flex; align-items: center; gap: .35rem; }
+.stat-icon { color: var(--muted); }
+.stat-icon svg { width: 13px; height: 13px; }
+.stat-num { font-size: .75rem; font-weight: 500; }
+.stat-lbl { font-size: .58rem; color: var(--muted); letter-spacing: .06em; }
+
+/* Genre chips */
+.card-genres {
+  display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: 1rem;
+}
+.genre-chip {
+  font-size: .55rem; letter-spacing: .08em; text-transform: uppercase;
+  padding: .22rem .55rem; border: 1px solid var(--border);
+  border-radius: 999px; color: var(--muted);
+}
+
+/* Bottom row: album info + open button */
+.card-bottom {
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+}
+
+.card-album { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.card-album img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
+.card-album-placeholder { width: 32px; height: 32px; border-radius: 4px; background: var(--card2); flex-shrink: 0; }
+.card-album-text { min-width: 0; }
+.card-album-name { font-size: .65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-album-year { font-size: .55rem; color: var(--muted); }
+
+.btn-open {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .5rem .9rem; background: var(--accent); color: #000;
+  font-family: 'DM Mono', monospace; font-size: .62rem; font-weight: 500;
+  letter-spacing: .08em; text-transform: uppercase; text-decoration: none;
+  border-radius: 6px; transition: all .2s; white-space: nowrap; flex-shrink: 0;
+}
+.btn-open:hover { background: #1ed760; transform: translateY(-1px); }
+.btn-open svg { width: 13px; height: 13px; }
+
+/* ===== LANDSCAPE on large screens — show card + details side by side ===== */
+@media (min-width: 800px) {
+  body { padding: 2rem; }
+
+  #card-screen { flex-direction: column; }
+
+  .card-wide-wrap {
+    display: flex;
+    gap: 2px;
+    max-width: 820px;
+    width: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 40px 80px rgba(0,0,0,.6);
+    animation: fadeUp .6s cubic-bezier(.16,1,.3,1) both;
+  }
+
+  /* Left: the portrait card WITHOUT its own shadow/border */
+  .music-card {
+    max-width: none;
+    width: 320px;
+    flex-shrink: 0;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    animation: none;
+  }
+
+  /* Right: extra detail panel */
+  .detail-panel {
+    flex: 1;
+    background: #0f0f0f;
+    padding: 2rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    overflow-y: auto;
+  }
+
+  .dp-label {
+    font-size: .55rem; letter-spacing: .25em; text-transform: uppercase;
+    color: var(--muted); padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    margin-bottom: .75rem;
+  }
+
+  .dp-artist-row { display: flex; align-items: center; gap: .85rem; }
+  .dp-artist-img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); flex-shrink: 0; }
+  .dp-artist-init {
+    width: 52px; height: 52px; border-radius: 50%; background: var(--card);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--muted); flex-shrink: 0;
+  }
+  .dp-artist-name {
+    font-family: 'Playfair Display', serif; font-size: 1rem;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .dp-artist-followers { font-size: .6rem; color: var(--muted); margin-top: .2rem; }
+
+  .dp-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .dp-stat { background: var(--card); padding: .85rem; }
+  .dp-stat-val { font-family: 'Playfair Display', serif; font-size: 1.4rem; letter-spacing: -.03em; line-height: 1; }
+  .dp-stat-key { font-size: .54rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: .2rem; }
+
+  .dp-genres { display: flex; flex-wrap: wrap; gap: .4rem; }
+}
+
+/* Portrait / mobile: hide detail panel */
+@media (max-width: 799px) {
+  .card-wide-wrap { display: contents; }
+  .detail-panel { display: none; }
+  .music-card { border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 40px 80px rgba(0,0,0,.6); }
+}
+
 @keyframes fadeUp {
-  from { opacity:0; transform:translateY(18px); }
+  from { opacity:0; transform:translateY(16px); }
   to   { opacity:1; transform:translateY(0); }
 }
 @keyframes spin { to { transform:rotate(360deg); } }
@@ -52,316 +396,39 @@ body::before {
   0%,100% { opacity:1; transform:scale(1); }
   50%     { opacity:.4; transform:scale(.7); }
 }
-
-/* ===== AUTH SCREEN ===== */
-#auth-screen {
-  min-height:100vh; display:flex; align-items:center;
-  justify-content:center; padding:2rem; position:relative;
-}
-
-.auth-card {
-  width:100%; max-width:400px; text-align:center;
-  animation: fadeUp .8s cubic-bezier(.16,1,.3,1) both;
-}
-
-.brand {
-  font-family:'Instrument Serif',serif; font-style:italic;
-  font-size:.72rem; letter-spacing:.32em; text-transform:uppercase;
-  color:var(--muted); margin-bottom:3rem;
-}
-
-.auth-headline {
-  font-family:'Playfair Display',serif;
-  font-size:clamp(2.4rem,7vw,3.2rem);
-  line-height:1.08; letter-spacing:-.025em; margin-bottom:.6rem;
-}
-.auth-headline em { font-style:italic; color:var(--accent); }
-
-.auth-sub {
-  font-size:.7rem; color:var(--muted); line-height:1.7;
-  margin-bottom:2.5rem; letter-spacing:.03em;
-}
-
-.btn-connect {
-  display:inline-flex; align-items:center; gap:.6rem;
-  padding:.9rem 1.8rem; background:var(--accent); color:#000;
-  border:none; border-radius:6px;
-  font-family:'DM Mono',monospace; font-size:.75rem; font-weight:500;
-  letter-spacing:.12em; text-transform:uppercase; cursor:pointer;
-  transition:all .2s;
-}
-.btn-connect:hover { background:#1ed760; transform:translateY(-2px); box-shadow:0 12px 30px rgba(29,185,84,.25); }
-.btn-connect svg { width:18px; height:18px; flex-shrink:0; }
-
-.auth-note {
-  font-size:.58rem; color:var(--muted);
-  margin-top:1.5rem; letter-spacing:.05em; line-height:1.6;
-}
-
-/* ===== INPUT SCREEN ===== */
-#input-screen {
-  display:none; min-height:100vh; align-items:center;
-  justify-content:center; padding:2rem; position:relative;
-}
-
-.input-card {
-  width:100%; max-width:420px; text-align:center;
-  animation: fadeUp .6s cubic-bezier(.16,1,.3,1) both;
-}
-
-.user-pill {
-  display:inline-flex; align-items:center; gap:.5rem;
-  padding:.35rem .8rem .35rem .35rem;
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:999px; margin-bottom:2.5rem;
-}
-.user-pill img { width:22px; height:22px; border-radius:50%; object-fit:cover; }
-.user-pill span { font-size:.62rem; letter-spacing:.08em; color:var(--muted); }
-
-.input-headline {
-  font-family:'Playfair Display',serif;
-  font-size:clamp(1.8rem,5vw,2.4rem);
-  line-height:1.1; letter-spacing:-.02em; margin-bottom:.4rem;
-}
-.input-headline em { font-style:italic; color:var(--accent); }
-
-.input-sub { font-size:.68rem; color:var(--muted); margin-bottom:2rem; letter-spacing:.04em; }
-
-.field-wrap { position:relative; margin-bottom:.75rem; }
-
-.field-label {
-  font-size:.58rem; letter-spacing:.15em; text-transform:uppercase;
-  color:var(--muted); position:absolute; top:.8rem; left:1rem; pointer-events:none;
-}
-
-input[type="text"] {
-  width:100%; background:var(--surface); border:1px solid var(--border);
-  border-radius:6px; color:var(--text);
-  font-family:'DM Mono',monospace; font-size:.82rem;
-  padding:1.75rem 1rem .6rem; outline:none; transition:border-color .2s;
-}
-input[type="text"]:focus { border-color:rgba(29,185,84,.35); }
-
-.btn-generate {
-  width:100%; padding:.95rem; border:none; border-radius:6px;
-  background:var(--accent); color:#000;
-  font-family:'DM Mono',monospace; font-size:.75rem; font-weight:500;
-  letter-spacing:.12em; text-transform:uppercase; cursor:pointer; transition:all .2s;
-}
-.btn-generate:hover { background:#1ed760; transform:translateY(-1px); }
-.btn-generate:disabled { opacity:.45; cursor:not-allowed; transform:none; }
-
-.input-hint { font-size:.6rem; color:var(--muted); margin-top:1.2rem; line-height:1.7; }
-
-.error-msg { font-size:.65rem; color:#ff5c5c; margin-top:.75rem; display:none; letter-spacing:.04em; }
-
-.logout-btn {
-  background:none; border:none; color:var(--muted);
-  font-family:'DM Mono',monospace; font-size:.58rem;
-  letter-spacing:.1em; cursor:pointer; margin-top:2rem;
-  text-decoration:underline; text-underline-offset:3px;
-}
-
-/* ===== LOADING ===== */
-#loading-screen {
-  display:none; min-height:100vh; align-items:center;
-  justify-content:center; flex-direction:column; gap:1.5rem;
-}
-.loader-ring {
-  width:36px; height:36px;
-  border:2px solid var(--border); border-top-color:var(--accent);
-  border-radius:50%; animation:spin .75s linear infinite;
-}
-.loading-text { font-size:.62rem; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); }
-
-/* ===== CARD SCREEN ===== */
-#card-screen { display:none; padding:2rem; min-height:100vh; }
-
-.card-topbar {
-  max-width:1100px; margin:0 auto 1.25rem;
-  display:flex; align-items:center; justify-content:space-between;
-}
-
-.back-btn {
-  display:inline-flex; align-items:center; gap:.4rem;
-  font-size:.6rem; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--muted); background:none; border:none; cursor:pointer; transition:color .2s;
-}
-.back-btn:hover { color:var(--text); }
-
-.card-layout {
-  max-width:1100px; margin:0 auto;
-  display:grid; grid-template-columns:1fr 1fr;
-  gap:2px; border-radius:12px; overflow:hidden;
-  border:1px solid var(--border); min-height:calc(100vh - 8rem);
-}
-
-/* LEFT */
-.panel-left {
-  background:var(--surface); padding:3rem 2.5rem;
-  display:flex; flex-direction:column; position:relative; overflow:hidden;
-}
-.panel-left-glow { position:absolute; inset:0; pointer-events:none; transition:background 1.2s; }
-
-.now-playing-label {
-  font-size:.58rem; letter-spacing:.28em; text-transform:uppercase;
-  color:var(--muted); margin-bottom:2rem; position:relative;
-  display:flex; align-items:center; gap:.5rem;
-}
-.dot-live {
-  width:6px; height:6px; border-radius:50%;
-  background:var(--accent); animation:pulse 2s infinite;
-}
-
-.album-art-wrap {
-  position:relative; width:100%; aspect-ratio:1; margin-bottom:2rem;
-  border-radius:8px; overflow:hidden; flex-shrink:0;
-  box-shadow:0 40px 80px rgba(0,0,0,.7), 0 0 0 1px var(--border);
-}
-.album-art-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
-
-.album-placeholder {
-  width:100%; height:100%; background:var(--surface2);
-  display:flex; align-items:center; justify-content:center;
-}
-.vinyl {
-  width:55%; aspect-ratio:1; border-radius:50%;
-  border:2px solid rgba(255,255,255,.05);
-  display:flex; align-items:center; justify-content:center;
-  animation:spin 8s linear infinite;
-}
-.vinyl-center {
-  width:28%; aspect-ratio:1; border-radius:50%;
-  background:var(--bg); border:2px solid rgba(255,255,255,.07);
-}
-
-.track-name {
-  font-family:'Playfair Display',serif;
-  font-size:clamp(1.4rem,2.6vw,2rem);
-  line-height:1.15; letter-spacing:-.02em; margin-bottom:.35rem; position:relative;
-}
-.track-by { font-size:.72rem; color:var(--muted); letter-spacing:.06em; position:relative; margin-bottom:1.5rem; }
-.track-by span { color:var(--accent); }
-
-.prog-bar-bg { height:2px; background:rgba(255,255,255,.07); border-radius:999px; overflow:hidden; }
-.prog-bar-fill { height:100%; background:var(--accent); border-radius:999px; width:0; transition:width 1.5s cubic-bezier(.16,1,.3,1); }
-.prog-times { display:flex; justify-content:space-between; font-size:.58rem; color:var(--muted); margin-top:.45rem; letter-spacing:.04em; }
-
-/* RIGHT */
-.panel-right {
-  background:var(--bg); padding:3rem 2.5rem;
-  display:flex; flex-direction:column; gap:1.75rem;
-  position:relative; overflow:hidden; overflow-y:auto;
-}
-
-.section-label {
-  font-size:.56rem; letter-spacing:.28em; text-transform:uppercase;
-  color:var(--muted); margin-bottom:.85rem; padding-bottom:.5rem;
-  border-bottom:1px solid var(--border);
-}
-
-.artist-row { display:flex; align-items:center; gap:1rem; }
-.artist-img { width:54px; height:54px; border-radius:50%; object-fit:cover; border:1px solid var(--border); flex-shrink:0; }
-.artist-initials {
-  width:54px; height:54px; border-radius:50%;
-  background:var(--surface); border:1px solid var(--border);
-  display:flex; align-items:center; justify-content:center;
-  font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--muted); flex-shrink:0;
-}
-.artist-info { flex:1; min-width:0; }
-.artist-name-text {
-  font-family:'Playfair Display',serif; font-size:1.05rem;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  display:flex; align-items:center; gap:5px;
-}
-.verified {
-  display:inline-flex; align-items:center; justify-content:center;
-  width:14px; height:14px; background:var(--accent); border-radius:50%; flex-shrink:0;
-}
-.verified svg { width:8px; height:8px; }
-.artist-followers { font-size:.6rem; color:var(--muted); margin-top:.2rem; letter-spacing:.05em; }
-
-.album-row { display:flex; align-items:center; gap:1rem; }
-.album-thumb { width:46px; height:46px; border-radius:4px; object-fit:cover; border:1px solid var(--border); flex-shrink:0; }
-.album-thumb-placeholder { width:46px; height:46px; border-radius:4px; background:var(--surface); border:1px solid var(--border); flex-shrink:0; }
-.album-info { flex:1; min-width:0; }
-.album-title { font-size:.82rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.album-date { font-size:.6rem; color:var(--muted); margin-top:.2rem; letter-spacing:.05em; }
-
-.stats-grid {
-  display:grid; grid-template-columns:1fr 1fr;
-  gap:1px; background:var(--border); border-radius:6px; overflow:hidden;
-}
-.stat-cell { background:var(--surface); padding:1rem; }
-.stat-val { font-family:'Playfair Display',serif; font-size:1.5rem; letter-spacing:-.03em; line-height:1; }
-.stat-key { font-size:.56rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:.25rem; }
-
-.genre-chips { display:flex; flex-wrap:wrap; gap:.45rem; }
-.genre-chip {
-  font-size:.58rem; letter-spacing:.1em; text-transform:uppercase;
-  padding:.28rem .65rem; border:1px solid var(--border); border-radius:999px; color:var(--muted);
-}
-
-.spotify-cta { margin-top:auto; }
-.spotify-btn {
-  display:inline-flex; align-items:center; gap:.5rem;
-  padding:.7rem 1.2rem; background:var(--accent); color:#000;
-  font-family:'DM Mono',monospace; font-size:.68rem; font-weight:500;
-  letter-spacing:.1em; text-transform:uppercase; text-decoration:none;
-  border-radius:4px; transition:all .2s;
-}
-.spotify-btn:hover { background:#1ed760; transform:translateY(-1px); }
-.spotify-btn svg { width:15px; height:15px; }
-
-/* ===== RESPONSIVE ===== */
-@media (max-width:700px), (orientation:portrait) and (max-width:960px) {
-  #card-screen { padding:1rem; }
-  .card-layout { grid-template-columns:1fr; min-height:unset; }
-  .panel-left { padding:2rem 1.5rem; }
-  .album-art-wrap { max-width:260px; margin:0 auto 1.5rem; }
-  .panel-right { padding:2rem 1.5rem; }
-}
-
-.panel-left  { animation:fadeUp .65s cubic-bezier(.16,1,.3,1) both; }
-.panel-right { animation:fadeUp .65s cubic-bezier(.16,1,.3,1) .1s both; }
 </style>
 </head>
 <body>
+<div class="bg-glow" id="bg-glow"></div>
 
-<!-- AUTH SCREEN -->
+<!-- AUTH -->
 <div id="auth-screen">
-  <div class="glow-orb"></div>
-  <div class="auth-card">
-    <div class="brand">Music Art</div>
-    <h1 class="auth-headline">Your <em>sound,</em><br>visualized.</h1>
-    <p class="auth-sub">Connect with Spotify to generate<br>beautiful cards for any track.</p>
-    <button class="btn-connect" onclick="startAuth()">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-      Connect Spotify
-    </button>
-    <p class="auth-note">PKCE flow &mdash; no Client Secret needed, nothing stored server-side.</p>
-  </div>
+  <div class="brand">Music Art</div>
+  <h1 class="auth-headline">Your <em>sound,</em><br>visualized.</h1>
+  <p class="auth-sub">Connect with Spotify to generate<br>beautiful cards for any track.</p>
+  <button class="btn-connect" onclick="startAuth()">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+    Connect Spotify
+  </button>
+  <p class="auth-note">PKCE — no secret needed, nothing stored server-side.</p>
 </div>
 
-<!-- INPUT SCREEN -->
+<!-- INPUT -->
 <div id="input-screen">
-  <div class="glow-orb"></div>
-  <div class="input-card">
-    <div class="user-pill" id="user-pill">
-      <div style="width:22px;height:22px;border-radius:50%;background:var(--surface2)"></div>
-      <span>Connected</span>
-    </div>
-    <h2 class="input-headline">Enter a <em>track</em></h2>
-    <p class="input-sub">Paste a Spotify track ID or full track URL</p>
-    <div class="field-wrap">
-      <label class="field-label">Track ID or URL</label>
-      <input type="text" id="track-input" placeholder="4uLU6hMCjMI75M1A2tKUQC" autocomplete="off" spellcheck="false" />
-    </div>
-    <button class="btn-generate" onclick="generate()">Generate Card</button>
-    <p class="error-msg" id="error-msg">Could not load track. Check the ID and try again.</p>
-    <p class="input-hint">In Spotify: Share &rarr; Copy Link. The ID is after <code>track/</code>.</p>
-    <button class="logout-btn" onclick="logout()">Disconnect</button>
+  <div class="user-pill" id="user-pill">
+    <div style="width:24px;height:24px;border-radius:50%;background:var(--card2)"></div>
+    <span>Connected</span>
   </div>
+  <h2 class="input-headline">Enter a <em>track</em></h2>
+  <p class="input-sub">Paste a Spotify track ID or full URL</p>
+  <div class="field-wrap">
+    <label class="field-label">Track ID or URL</label>
+    <input type="text" id="track-input" placeholder="4uLU6hMCjMI75M1A2tKUQC" autocomplete="off" spellcheck="false" />
+  </div>
+  <button class="btn-gen" onclick="generate()">Generate Card</button>
+  <p class="error-msg" id="error-msg">Could not load track. Check the ID and try again.</p>
+  <p class="input-hint">In Spotify: Share &rarr; Copy Link. The ID is after <code>track/</code>.</p>
+  <button class="logout-btn" onclick="logout()">Disconnect</button>
 </div>
 
 <!-- LOADING -->
@@ -370,75 +437,117 @@ input[type="text"]:focus { border-color:rgba(29,185,84,.35); }
   <div class="loading-text">Fetching track&hellip;</div>
 </div>
 
-<!-- CARD SCREEN -->
+<!-- CARD -->
 <div id="card-screen">
-  <div class="card-topbar">
-    <button class="back-btn" onclick="goBack()">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="11" height="11"><path d="M10 3L5 8l5 5"/></svg>
-      New track
-    </button>
-  </div>
-  <div class="card-layout">
+  <button class="back-btn" onclick="goBack()">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="11" height="11"><path d="M10 3L5 8l5 5"/></svg>
+    New track
+  </button>
 
-    <div class="panel-left">
-      <div class="panel-left-glow" id="panel-glow"></div>
-      <div class="now-playing-label"><div class="dot-live"></div>Now Playing</div>
-      <div class="album-art-wrap" id="album-art-wrap">
-        <div class="album-placeholder"><div class="vinyl"><div class="vinyl-center"></div></div></div>
+  <div class="card-wide-wrap">
+
+    <!-- Portrait card (always visible) -->
+    <div class="music-card">
+      <div class="card-art" id="card-art">
+        <div class="card-art-placeholder">
+          <div class="vinyl"><div class="vinyl-center"></div></div>
+        </div>
+        <div class="art-badge">
+          <svg viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+          Now Playing
+        </div>
+        <div class="art-progress">
+          <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-fill"></div></div>
+          <div class="prog-times"><span>0:00</span><span id="time-total">0:00</span></div>
+        </div>
       </div>
-      <div class="track-name" id="track-name">--</div>
-      <div class="track-by" id="track-by">--</div>
-      <div>
-        <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-fill"></div></div>
-        <div class="prog-times"><span>0:00</span><span id="time-total">0:00</span></div>
+
+      <div class="card-body">
+        <div class="card-track" id="card-track">--</div>
+
+        <div class="card-artist-row">
+          <div class="card-artist-name" id="card-artist-name">--</div>
+          <span class="verified"><svg viewBox="0 0 10 10" fill="white"><path d="M4.3 7.2L1.8 4.7l.9-.9 1.6 1.6 3.2-3.2.9.9z"/></svg></span>
+        </div>
+
+        <div class="card-divider"></div>
+
+        <div class="card-stats">
+          <div class="stat-item">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+              <div class="stat-num" id="stat-followers">--</div>
+              <div class="stat-lbl">Followers</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div>
+              <div class="stat-num" id="stat-pop">--</div>
+              <div class="stat-lbl">Popularity</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div>
+              <div class="stat-num" id="stat-dur">--</div>
+              <div class="stat-lbl">Duration</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-genres" id="card-genres"></div>
+
+        <div class="card-bottom">
+          <div class="card-album">
+            <div class="card-album-placeholder" id="card-album-thumb"></div>
+            <div class="card-album-text">
+              <div class="card-album-name" id="card-album-name">--</div>
+              <div class="card-album-year" id="card-album-year">--</div>
+            </div>
+          </div>
+          <a class="btn-open" id="spotify-link" href="#" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+            Open
+          </a>
+        </div>
       </div>
     </div>
 
-    <div class="panel-right">
+    <!-- Detail panel (landscape only) -->
+    <div class="detail-panel">
       <div>
-        <div class="section-label">Artist</div>
-        <div class="artist-row">
-          <div class="artist-initials" id="artist-img-wrap">?</div>
-          <div class="artist-info">
-            <div class="artist-name-text" id="artist-name-text">--
+        <div class="dp-label">Artist</div>
+        <div class="dp-artist-row">
+          <div class="dp-artist-init" id="dp-artist-img">?</div>
+          <div>
+            <div class="dp-artist-name" id="dp-artist-name">--
               <span class="verified"><svg viewBox="0 0 10 10" fill="white"><path d="M4.3 7.2L1.8 4.7l.9-.9 1.6 1.6 3.2-3.2.9.9z"/></svg></span>
             </div>
-            <div class="artist-followers" id="artist-followers">--</div>
+            <div class="dp-artist-followers" id="dp-artist-followers">--</div>
           </div>
         </div>
       </div>
 
       <div>
-        <div class="section-label">Album</div>
-        <div class="album-row">
-          <div class="album-thumb-placeholder" id="album-thumb-wrap"></div>
-          <div class="album-info">
-            <div class="album-title" id="album-title">--</div>
-            <div class="album-date" id="album-date">--</div>
-          </div>
+        <div class="dp-label">Track Stats</div>
+        <div class="dp-stats">
+          <div class="dp-stat"><div class="dp-stat-val" id="dp-pop">--</div><div class="dp-stat-key">Popularity</div></div>
+          <div class="dp-stat"><div class="dp-stat-val" id="dp-dur">--</div><div class="dp-stat-key">Duration</div></div>
+          <div class="dp-stat"><div class="dp-stat-val" id="dp-tracks">--</div><div class="dp-stat-key">Album Tracks</div></div>
+          <div class="dp-stat"><div class="dp-stat-val" id="dp-year">--</div><div class="dp-stat-key">Year</div></div>
         </div>
       </div>
 
-      <div>
-        <div class="section-label">Track Stats</div>
-        <div class="stats-grid">
-          <div class="stat-cell"><div class="stat-val" id="stat-pop">--</div><div class="stat-key">Popularity</div></div>
-          <div class="stat-cell"><div class="stat-val" id="stat-dur">--</div><div class="stat-key">Duration</div></div>
-          <div class="stat-cell"><div class="stat-val" id="stat-tracks">--</div><div class="stat-key">Album Tracks</div></div>
-          <div class="stat-cell"><div class="stat-val" id="stat-year">--</div><div class="stat-key">Year</div></div>
-        </div>
-      </div>
-
-      <div id="genres-section" style="display:none">
-        <div class="section-label">Genres</div>
-        <div class="genre-chips" id="genre-chips"></div>
-      </div>
-
-      <div class="spotify-cta">
-        <a class="spotify-btn" id="spotify-link" href="#" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-          Open on Spotify
-        </a>
+      <div id="dp-genres-wrap" style="display:none">
+        <div class="dp-label">Genres</div>
+        <div class="dp-genres" id="dp-genres"></div>
       </div>
     </div>
 
@@ -446,90 +555,65 @@ input[type="text"]:focus { border-color:rgba(29,185,84,.35); }
 </div>
 
 <script>
-// ============================================================
-// CONFIG
-// ============================================================
 const CLIENT_ID    = '2dba0d8b0d3540c79971f906ab1e3589';
 const REDIRECT_URI = 'https://nanthe27.github.io/Timessss/';
 const SCOPES       = 'user-read-private';
 
-// ============================================================
 // PKCE
-// ============================================================
 function rndBytes(n) { return crypto.getRandomValues(new Uint8Array(n)); }
-function b64url(buf) {
-  return btoa(String.fromCharCode(...buf))
-    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-}
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return b64url(new Uint8Array(buf));
-}
+function b64url(buf) { return btoa(String.fromCharCode(...buf)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+async function sha256(s) { return b64url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))); }
 
 async function startAuth() {
-  const verifier  = b64url(rndBytes(64));
-  const challenge = await sha256(verifier);
-  sessionStorage.setItem('pkce_v', verifier);
+  const v = b64url(rndBytes(64));
+  sessionStorage.setItem('pkce_v', v);
   const p = new URLSearchParams({
-    response_type:'code', client_id:CLIENT_ID,
-    scope:SCOPES, redirect_uri:REDIRECT_URI,
-    code_challenge_method:'S256', code_challenge:challenge,
+    response_type:'code', client_id:CLIENT_ID, scope:SCOPES,
+    redirect_uri:REDIRECT_URI, code_challenge_method:'S256',
+    code_challenge: await sha256(v),
   });
   window.location.href = 'https://accounts.spotify.com/authorize?' + p;
 }
 
 async function exchangeCode(code) {
-  const verifier = sessionStorage.getItem('pkce_v');
   const r = await fetch('https://accounts.spotify.com/api/token', {
-    method:'POST',
-    headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body: new URLSearchParams({
-      grant_type:'authorization_code', code,
+    method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body: new URLSearchParams({ grant_type:'authorization_code', code,
       redirect_uri:REDIRECT_URI, client_id:CLIENT_ID,
-      code_verifier:verifier,
-    })
+      code_verifier: sessionStorage.getItem('pkce_v') })
   });
   if (!r.ok) throw new Error('token');
   const d = await r.json();
   sessionStorage.setItem('at', d.access_token);
-  sessionStorage.setItem('exp', Date.now() + (d.expires_in - 60) * 1000);
+  sessionStorage.setItem('exp', Date.now() + (d.expires_in-60)*1000);
   if (d.refresh_token) sessionStorage.setItem('rt', d.refresh_token);
   sessionStorage.removeItem('pkce_v');
 }
 
-async function refreshToken() {
+async function doRefresh() {
   const rt = sessionStorage.getItem('rt');
   if (!rt) { logout(); return; }
   const r = await fetch('https://accounts.spotify.com/api/token', {
-    method:'POST',
-    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
     body: new URLSearchParams({ grant_type:'refresh_token', refresh_token:rt, client_id:CLIENT_ID })
   });
   if (!r.ok) { logout(); return; }
   const d = await r.json();
   sessionStorage.setItem('at', d.access_token);
-  sessionStorage.setItem('exp', Date.now() + (d.expires_in - 60) * 1000);
+  sessionStorage.setItem('exp', Date.now() + (d.expires_in-60)*1000);
 }
 
 async function api(path) {
-  if (Date.now() > parseInt(sessionStorage.getItem('exp')||'0')) await refreshToken();
+  if (Date.now() > parseInt(sessionStorage.getItem('exp')||'0')) await doRefresh();
   const token = sessionStorage.getItem('at');
   if (!token) { logout(); throw new Error('no token'); }
-  const r = await fetch('https://api.spotify.com/v1' + path, {
-    headers:{Authorization:'Bearer '+token}
-  });
-  if (!r.ok) {
-    const body = await r.text();
-    throw new Error(r.status + ': ' + body);
-  }
+  const r = await fetch('https://api.spotify.com/v1'+path, { headers:{Authorization:'Bearer '+token} });
+  if (!r.ok) throw new Error(r.status);
   return r.json();
 }
 
 function logout() { sessionStorage.clear(); show('auth'); }
 
-// ============================================================
-// UTILS
-// ============================================================
 function msToTime(ms) {
   const m = Math.floor(ms/60000);
   const s = Math.floor((ms%60000)/1000).toString().padStart(2,'0');
@@ -537,18 +621,15 @@ function msToTime(ms) {
 }
 function fmtNum(n) {
   if (n>=1e6) return (n/1e6).toFixed(1)+'M';
-  if (n>=1e3) return (n/1e3).toFixed(0)+'K';
+  if (n>=1e3) return Math.round(n/1e3)+'K';
   return n;
 }
 
-// ============================================================
-// UI
-// ============================================================
 function show(screen) {
-  document.getElementById('auth-screen').style.display    = screen==='auth'    ? 'flex'  : 'none';
-  document.getElementById('input-screen').style.display   = screen==='input'   ? 'flex'  : 'none';
-  document.getElementById('loading-screen').style.display = screen==='loading' ? 'flex'  : 'none';
-  document.getElementById('card-screen').style.display    = screen==='card'    ? 'block' : 'none';
+  ['auth','input','loading','card'].forEach(s => {
+    const el = document.getElementById(s+'-screen');
+    el.style.display = s===screen ? 'flex' : 'none';
+  });
 }
 
 async function loadUser() {
@@ -556,8 +637,8 @@ async function loadUser() {
     const me = await api('/me');
     const img = me.images?.[0]?.url;
     document.getElementById('user-pill').innerHTML = img
-      ? `<img src="${img}" alt="${me.display_name}" /><span>${me.display_name}</span>`
-      : `<div style="width:22px;height:22px;border-radius:50%;background:var(--surface2)"></div><span>${me.display_name||'Connected'}</span>`;
+      ? `<img src="${img}" /><span>${me.display_name}</span>`
+      : `<div style="width:24px;height:24px;border-radius:50%;background:var(--card2)"></div><span>${me.display_name||'Connected'}</span>`;
   } catch {}
 }
 
@@ -566,20 +647,17 @@ async function generate() {
   const errEl = document.getElementById('error-msg');
   errEl.style.display = 'none';
   if (!raw) return;
-
   let id = raw;
   const m = raw.match(/track\/([A-Za-z0-9]+)/);
   if (m) id = m[1];
   id = id.split('?')[0];
-
   show('loading');
   try {
-    const track  = await api('/tracks/' + id);
-    const artist = await api('/artists/' + track.artists[0].id);
+    const track  = await api('/tracks/'+id);
+    const artist = await api('/artists/'+track.artists[0].id);
     render(track, artist);
     show('card');
   } catch(e) {
-    errEl.textContent = 'Could not load track. Check the ID and try again.';
     errEl.style.display = 'block';
     show('input');
   }
@@ -588,97 +666,89 @@ async function generate() {
 function render(track, artist) {
   const artUrl = track.album.images?.[0]?.url;
 
-  // Album art
-  document.getElementById('album-art-wrap').innerHTML = artUrl
-    ? `<img src="${artUrl}" alt="Album art" />`
-    : `<div class="album-placeholder"><div class="vinyl"><div class="vinyl-center"></div></div></div>`;
+  // Art
+  const artEl = document.getElementById('card-art');
+  const badge = artEl.querySelector('.art-badge').outerHTML;
+  const prog  = artEl.querySelector('.art-progress').outerHTML;
+  artEl.innerHTML = (artUrl ? `<img src="${artUrl}" alt="Album art" />` : `<div class="card-art-placeholder"><div class="vinyl"><div class="vinyl-center"></div></div></div>`)
+    + badge + prog;
 
-  if (artUrl)
-    document.getElementById('panel-glow').style.background =
-      'radial-gradient(ellipse at 50% 35%, rgba(29,185,84,0.09) 0%, transparent 60%)';
+  // Dynamic bg glow
+  document.getElementById('bg-glow').style.background =
+    'radial-gradient(circle, rgba(29,185,84,0.07) 0%, transparent 65%)';
 
-  // Track
-  document.getElementById('track-name').textContent = track.name;
-  document.getElementById('track-by').innerHTML =
-    'by <span>' + track.artists.map(a=>a.name).join(', ') + '</span>';
-  document.getElementById('time-total').textContent = msToTime(track.duration_ms);
+  // Progress
   setTimeout(() => {
     document.getElementById('prog-fill').style.width = (Math.random()*55+10)+'%';
   }, 300);
+  document.getElementById('time-total').textContent = msToTime(track.duration_ms);
 
-  // Artist
-  const aw = document.getElementById('artist-img-wrap');
-  const ai = artist.images?.[0]?.url;
-  aw.outerHTML = ai
-    ? `<img class="artist-img" id="artist-img-wrap" src="${ai}" alt="${artist.name}" />`
-    : `<div class="artist-initials" id="artist-img-wrap">${artist.name[0]}</div>`;
+  // Track info
+  document.getElementById('card-track').textContent = track.name;
+  document.getElementById('card-artist-name').innerHTML =
+    '<span>' + track.artists.map(a=>a.name).join(', ') + '</span>';
 
-  document.getElementById('artist-name-text').innerHTML =
-    artist.name +
-    `<span class="verified"><svg viewBox="0 0 10 10" fill="white"><path d="M4.3 7.2L1.8 4.7l.9-.9 1.6 1.6 3.2-3.2.9.9z"/></svg></span>`;
-  document.getElementById('artist-followers').textContent =
-    fmtNum(artist.followers?.total ?? 0) + ' followers';
+  // Stats (card)
+  const followers = artist.followers?.total ?? 0;
+  document.getElementById('stat-followers').textContent = fmtNum(followers);
+  document.getElementById('stat-pop').textContent       = track.popularity;
+  document.getElementById('stat-dur').textContent       = msToTime(track.duration_ms);
 
-  // Album
-  const ath = document.getElementById('album-thumb-wrap');
-  ath.outerHTML = artUrl
-    ? `<img class="album-thumb" id="album-thumb-wrap" src="${artUrl}" alt="" />`
-    : `<div class="album-thumb-placeholder" id="album-thumb-wrap"></div>`;
-  document.getElementById('album-title').textContent = track.album.name;
-  document.getElementById('album-date').textContent  = track.album.release_date;
-
-  // Stats
-  document.getElementById('stat-pop').textContent    = track.popularity;
-  document.getElementById('stat-dur').textContent    = msToTime(track.duration_ms);
-  document.getElementById('stat-tracks').textContent = track.album.total_tracks;
-  document.getElementById('stat-year').textContent   = track.album.release_date.slice(0,4);
-
-  // Genres
+  // Genres (card)
   const genres = artist.genres || [];
-  if (genres.length) {
-    document.getElementById('genres-section').style.display = 'block';
-    document.getElementById('genre-chips').innerHTML =
-      genres.slice(0,6).map(g=>`<span class="genre-chip">${g}</span>`).join('');
-  } else {
-    document.getElementById('genres-section').style.display = 'none';
-  }
+  const genreEl = document.getElementById('card-genres');
+  genreEl.innerHTML = genres.slice(0,3).map(g=>`<span class="genre-chip">${g}</span>`).join('');
 
-  // Link
+  // Album (card bottom)
+  const thumbEl = document.getElementById('card-album-thumb');
+  thumbEl.outerHTML = artUrl
+    ? `<img class="card-album-thumb" id="card-album-thumb" src="${artUrl}" alt="" style="width:32px;height:32px;border-radius:4px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;" />`
+    : `<div class="card-album-placeholder" id="card-album-thumb"></div>`;
+  document.getElementById('card-album-name').textContent = track.album.name;
+  document.getElementById('card-album-year').textContent = track.album.release_date.slice(0,4);
   document.getElementById('spotify-link').href = track.external_urls.spotify;
+
+  // Detail panel (landscape)
+  const ai = artist.images?.[0]?.url;
+  const dpImg = document.getElementById('dp-artist-img');
+  dpImg.outerHTML = ai
+    ? `<img class="dp-artist-img" id="dp-artist-img" src="${ai}" alt="${artist.name}" />`
+    : `<div class="dp-artist-init" id="dp-artist-img">${artist.name[0]}</div>`;
+
+  document.getElementById('dp-artist-name').innerHTML =
+    artist.name + `<span class="verified"><svg viewBox="0 0 10 10" fill="white"><path d="M4.3 7.2L1.8 4.7l.9-.9 1.6 1.6 3.2-3.2.9.9z"/></svg></span>`;
+  document.getElementById('dp-artist-followers').textContent = fmtNum(followers) + ' followers';
+  document.getElementById('dp-pop').textContent    = track.popularity;
+  document.getElementById('dp-dur').textContent    = msToTime(track.duration_ms);
+  document.getElementById('dp-tracks').textContent = track.album.total_tracks;
+  document.getElementById('dp-year').textContent   = track.album.release_date.slice(0,4);
+
+  if (genres.length) {
+    document.getElementById('dp-genres-wrap').style.display = 'block';
+    document.getElementById('dp-genres').innerHTML = genres.slice(0,6).map(g=>`<span class="genre-chip">${g}</span>`).join('');
+  }
 }
 
 function goBack() { show('input'); }
 
-// ============================================================
 // INIT
-// ============================================================
 (async () => {
   const params = new URLSearchParams(window.location.search);
-  const code   = params.get('code');
-
+  const code = params.get('code');
   if (code) {
     history.replaceState({}, '', window.location.pathname);
-    try {
-      await exchangeCode(code);
-      await loadUser();
-      show('input');
-    } catch { show('auth'); }
+    try { await exchangeCode(code); await loadUser(); show('input'); }
+    catch { show('auth'); }
     return;
   }
-
-  const at  = sessionStorage.getItem('at');
-  const exp = sessionStorage.getItem('exp');
-  if (at && Date.now() < exp) {
-    await loadUser();
-    show('input');
-    return;
-  }
-
+  const at = sessionStorage.getItem('at');
+  const exp = parseInt(sessionStorage.getItem('exp')||'0');
+  if (at && Date.now() < exp) { await loadUser(); show('input'); return; }
   show('auth');
 })();
 
 document.getElementById('track-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') generate();
+  if (e.key==='Enter') generate();
 });
 </script>
 </body>
