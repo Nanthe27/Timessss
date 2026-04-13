@@ -405,18 +405,21 @@ input[type="text"]:focus { border-color: rgba(29,185,84,.35); }
     padding: 0;
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
-    align-items: stretch;
-    justify-content: stretch;
+    align-items: center;
+    justify-content: center;
   }
 
   #auth-screen, #input-screen, #loading-screen, #card-screen {
     min-height: 100dvh;
     padding: 0 1.5rem;
     justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 100%;
   }
 
   /* Auth */
-  #auth-screen { max-width: 100%; padding: 0 2rem; padding-bottom: 4rem; }
+  #auth-screen { max-width: 100%; padding: 0 2rem; }
   .brand { margin-bottom: 2.5rem; font-size: .68rem; }
   .auth-headline { font-size: 2.4rem; margin-bottom: .5rem; }
   .auth-sub { margin-bottom: 2.5rem; font-size: .72rem; line-height: 1.8; }
@@ -430,18 +433,22 @@ input[type="text"]:focus { border-color: rgba(29,185,84,.35); }
   .auth-note { font-size: .56rem; margin-top: 1.5rem; }
 
   /* Input */
-  #input-screen { max-width: 100%; padding: 0 1.5rem; padding-bottom: 4rem; }
+  #input-screen { max-width: 100%; padding: 0 1.5rem; }
   .user-pill { margin-bottom: 1.5rem; }
   .input-headline { font-size: 2rem; }
   .input-sub { font-size: .7rem; margin-bottom: 1.5rem; }
+
+  .field-wrap { width: 100%; }
 
   input[type="text"] {
     font-size: .85rem;
     padding: 1.85rem 1rem .65rem;
     border-radius: 12px;
+    width: 100%;
   }
 
   .btn-gen {
+    width: 100%;
     padding: 1.05rem; font-size: .72rem;
     border-radius: 12px;
   }
@@ -451,7 +458,7 @@ input[type="text"]:focus { border-color: rgba(29,185,84,.35); }
   .logout-btn { padding: .5rem; font-size: .6rem; margin-top: 2rem; }
 
   /* Card */
-  #card-screen { padding: 1rem 1rem 2rem; justify-content: flex-start; padding-top: calc(1rem + env(safe-area-inset-top)); }
+  #card-screen { padding: 1rem 1rem 2rem; justify-content: center; }
 
   .music-card {
     max-width: 100%;
@@ -474,7 +481,7 @@ input[type="text"]:focus { border-color: rgba(29,185,84,.35); }
   .card-bottom { gap: .5rem; }
   .btn-open { padding: .55rem .8rem; font-size: .6rem; border-radius: 8px; }
 
-  .back-btn { margin-bottom: 1rem; padding: .5rem; font-size: .62rem; align-self: flex-start; }
+  .back-btn { margin-bottom: 1rem; padding: .5rem; font-size: .62rem; }
 }
 
 /* Tiny screens (iPhone SE etc) */
