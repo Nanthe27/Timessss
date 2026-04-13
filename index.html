@@ -579,7 +579,7 @@ async function generate() {
     render(track, artist);
     show('card');
   } catch(e) {
-    errEl.textContent = 'Error: ' + e.message;
+    errEl.textContent = 'Could not load track. Check the ID and try again.';
     errEl.style.display = 'block';
     show('input');
   }
@@ -617,7 +617,7 @@ function render(track, artist) {
     artist.name +
     `<span class="verified"><svg viewBox="0 0 10 10" fill="white"><path d="M4.3 7.2L1.8 4.7l.9-.9 1.6 1.6 3.2-3.2.9.9z"/></svg></span>`;
   document.getElementById('artist-followers').textContent =
-    fmtNum(artist.followers.total) + ' followers';
+    fmtNum(artist.followers?.total ?? 0) + ' followers';
 
   // Album
   const ath = document.getElementById('album-thumb-wrap');
