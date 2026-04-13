@@ -1,0 +1,18 @@
+{
+  "name": "Timessss",
+  "short_name": "Timessss",
+  "description": "Your clock, your music.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23000'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%23fff' stroke-width='2.5'/%3E%3Cline x1='50' y1='50' x2='50' y2='22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='50' y1='50' x2='63' y2='56' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='50' r='2.5' fill='%23fff'/%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
