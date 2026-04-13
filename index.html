@@ -21,6 +21,7 @@
 
 html, body {
   min-height: 100%;
+  min-height: 100dvh;
   background: var(--bg);
   color: var(--text);
   font-family: 'DM Mono', monospace;
@@ -28,6 +29,8 @@ html, body {
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+  -webkit-tap-highlight-color: transparent;
 }
 
 body::before {
@@ -387,6 +390,64 @@ input[type="text"]:focus { border-color: rgba(29,185,84,.35); }
   .music-card { border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 40px 80px rgba(0,0,0,.6); }
 }
 
+/* ===== MOBILE POLISH ===== */
+@media (max-width: 480px) {
+  html, body { padding: 1.25rem .75rem; }
+
+  #auth-screen { max-width: 100%; padding: 0 .5rem; }
+  .auth-headline { font-size: 2.2rem; }
+  .brand { margin-bottom: 2rem; }
+  .auth-sub { margin-bottom: 2rem; }
+
+  .btn-connect {
+    width: 100%; justify-content: center;
+    padding: 1rem 1.5rem; font-size: .72rem;
+    border-radius: 10px;
+  }
+
+  #input-screen { max-width: 100%; padding: 0 .25rem; }
+  .input-headline { font-size: 1.8rem; }
+
+  input[type="text"] { font-size: .85rem; padding: 1.85rem 1rem .65rem; border-radius: 10px; }
+
+  .btn-gen {
+    padding: 1rem; font-size: .72rem;
+    border-radius: 10px;
+  }
+
+  .music-card {
+    max-width: 100%;
+    border-radius: 16px;
+  }
+
+  .card-art { margin: 8px; width: calc(100% - 16px); border-radius: 12px; }
+  .card-art img { border-radius: 12px; }
+  .card-body { padding: 2px 14px 14px; }
+
+  .card-track { font-size: 1.15rem; }
+  .card-artist-name { font-size: .68rem; }
+
+  .card-stats { gap: .9rem; flex-wrap: wrap; }
+  .stat-num { font-size: .72rem; }
+
+  .card-genres { gap: .3rem; }
+  .genre-chip { font-size: .52rem; padding: .2rem .45rem; }
+
+  .card-bottom { gap: .5rem; }
+  .btn-open { padding: .55rem .8rem; font-size: .6rem; border-radius: 8px; }
+
+  .back-btn { margin-bottom: 1rem; padding: .5rem; font-size: .62rem; }
+  .logout-btn { padding: .5rem; font-size: .6rem; }
+}
+
+/* Tiny screens (iPhone SE etc) */
+@media (max-width: 360px) {
+  html, body { padding: 1rem .5rem; }
+  .auth-headline { font-size: 1.9rem; }
+  .card-stats { gap: .6rem; }
+  .card-album img, .card-album-placeholder { width: 28px; height: 28px; }
+}
+
 @keyframes fadeUp {
   from { opacity:0; transform:translateY(16px); }
   to   { opacity:1; transform:translateY(0); }
@@ -566,7 +627,7 @@ async function sha256(s) { return b64url(new Uint8Array(await crypto.subtle.dige
 
 async function startAuth() {
   const v = b64url(rndBytes(64));
-  sessionStorage.setItem('pkce_v', v);
+  localStorage.setItem('pkce_v', v);
   const p = new URLSearchParams({
     response_type:'code', client_id:CLIENT_ID, scope:SCOPES,
     redirect_uri:REDIRECT_URI, code_challenge_method:'S256',
@@ -580,18 +641,18 @@ async function exchangeCode(code) {
     method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
     body: new URLSearchParams({ grant_type:'authorization_code', code,
       redirect_uri:REDIRECT_URI, client_id:CLIENT_ID,
-      code_verifier: sessionStorage.getItem('pkce_v') })
+      code_verifier: localStorage.getItem('pkce_v') })
   });
   if (!r.ok) throw new Error('token');
   const d = await r.json();
-  sessionStorage.setItem('at', d.access_token);
-  sessionStorage.setItem('exp', Date.now() + (d.expires_in-60)*1000);
-  if (d.refresh_token) sessionStorage.setItem('rt', d.refresh_token);
-  sessionStorage.removeItem('pkce_v');
+  localStorage.setItem('at', d.access_token);
+  localStorage.setItem('exp', Date.now() + (d.expires_in-60)*1000);
+  if (d.refresh_token) localStorage.setItem('rt', d.refresh_token);
+  localStorage.removeItem('pkce_v');
 }
 
 async function doRefresh() {
-  const rt = sessionStorage.getItem('rt');
+  const rt = localStorage.getItem('rt');
   if (!rt) { logout(); return; }
   const r = await fetch('https://accounts.spotify.com/api/token', {
     method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
@@ -599,20 +660,20 @@ async function doRefresh() {
   });
   if (!r.ok) { logout(); return; }
   const d = await r.json();
-  sessionStorage.setItem('at', d.access_token);
-  sessionStorage.setItem('exp', Date.now() + (d.expires_in-60)*1000);
+  localStorage.setItem('at', d.access_token);
+  localStorage.setItem('exp', Date.now() + (d.expires_in-60)*1000);
 }
 
 async function api(path) {
-  if (Date.now() > parseInt(sessionStorage.getItem('exp')||'0')) await doRefresh();
-  const token = sessionStorage.getItem('at');
+  if (Date.now() > parseInt(localStorage.getItem('exp')||'0')) await doRefresh();
+  const token = localStorage.getItem('at');
   if (!token) { logout(); throw new Error('no token'); }
   const r = await fetch('https://api.spotify.com/v1'+path, { headers:{Authorization:'Bearer '+token} });
   if (!r.ok) throw new Error(r.status);
   return r.json();
 }
 
-function logout() { sessionStorage.clear(); show('auth'); }
+function logout() { localStorage.clear(); show('auth'); }
 
 function msToTime(ms) {
   const m = Math.floor(ms/60000);
@@ -741,8 +802,8 @@ function goBack() { show('input'); }
     catch { show('auth'); }
     return;
   }
-  const at = sessionStorage.getItem('at');
-  const exp = parseInt(sessionStorage.getItem('exp')||'0');
+  const at = localStorage.getItem('at');
+  const exp = parseInt(localStorage.getItem('exp')||'0');
   if (at && Date.now() < exp) { await loadUser(); show('input'); return; }
   show('auth');
 })();
