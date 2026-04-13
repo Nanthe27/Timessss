@@ -18,21 +18,22 @@
   --text:#fff;--text2:rgba(255,255,255,.55);
   --font-ui:'Quicksand',sans-serif;
   --font-label:'Ubuntu',sans-serif;
-  --font-num:'Rubik','Outfit','DM Sans','Ubuntu',sans-serif;
+  --font-num:'Rubik',sans-serif;
   --safe-top:env(safe-area-inset-top,0px);
   --safe-bottom:env(safe-area-inset-bottom,0px);
+  --hide-speed:.5s;
 }
 html,body{height:100%;overflow:hidden;background:#000;color:var(--text);font-family:var(--font-ui);-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 #app{height:100%;width:100%;position:relative;overflow:hidden}
 
-/* ── Background ── */
+/* ── BG ── */
 .bg{position:fixed;inset:0;z-index:0}
-.bg-layer{position:absolute;inset:-60px;background-size:cover;background-position:center;filter:blur(90px) saturate(1.5) brightness(.65);transition:opacity 1.4s ease;will-change:opacity,filter}
+.bg-layer{position:absolute;inset:-60px;background-size:cover;background-position:center;filter:blur(90px) saturate(1.5) brightness(.65);transition:opacity 1.4s ease;will-change:opacity}
 .bg-layer.a{opacity:1}.bg-layer.b{opacity:0}
 .bg-overlay{position:absolute;inset:0;background:rgba(0,0,0,.3)}
 .bg-beat{position:absolute;inset:-60px;background:radial-gradient(ellipse at center,rgba(255,255,255,.06) 0%,transparent 70%);opacity:0;will-change:opacity;pointer-events:none}
 
-/* ── Transition Veil ── */
+/* ── Veil ── */
 .veil{position:fixed;inset:0;background:#000;opacity:0;z-index:50;pointer-events:none;transition:opacity .45s ease}
 .veil.on{opacity:.65}
 
@@ -47,17 +48,44 @@ html,body{height:100%;overflow:hidden;background:#000;color:var(--text);font-fam
 .auth-btn svg{width:20px;height:20px}
 
 /* ── Clock ── */
-.clock{position:fixed;top:calc(16px + var(--safe-top));left:0;right:0;display:flex;flex-direction:column;align-items:center;z-index:10;pointer-events:none;transition:opacity .5s ease,transform .5s ease}
+.clock{
+  position:fixed;top:calc(16px + var(--safe-top));left:0;right:0;
+  display:flex;flex-direction:column;align-items:center;z-index:10;
+  pointer-events:none;transition:opacity .5s ease,transform .5s ease;
+}
 .clock.off{opacity:0;transform:translateY(-16px)}
-.clock-time{font-family:var(--font-num);font-size:min(12vw,60px);font-weight:300;letter-spacing:-1px;line-height:1;text-shadow:0 2px 24px rgba(0,0,0,.6)}
-.clock-date{font-family:var(--font-label);font-size:min(3.2vw,13px);font-weight:300;color:var(--text2);margin-top:4px;letter-spacing:.4px;text-shadow:0 1px 10px rgba(0,0,0,.5)}
 .clock.hero{top:50%;transform:translateY(-50%)}
-.clock.hero .clock-time{font-size:min(18vw,110px)}
-.clock.hero .clock-date{font-size:min(4vw,17px);margin-top:8px}
 .clock.hero.off{opacity:0;transform:translateY(calc(-50% - 16px))}
 
+.clock-time{
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-num);font-weight:300;line-height:1;
+  text-shadow:0 2px 24px rgba(0,0,0,.6);
+}
+.clock-date{font-family:var(--font-label);font-size:min(3.2vw,13px);font-weight:300;color:var(--text2);margin-top:6px;letter-spacing:.4px;text-shadow:0 1px 10px rgba(0,0,0,.5)}
+
+/* Digit slots */
+.d-slot{
+  display:inline-block;position:relative;overflow:hidden;text-align:center;
+  height:1.1em;
+}
+/* Fixed width: all digits same column width */
+.d-slot{width:.62em}
+.d-sep{width:.35em;text-align:center;opacity:.5}
+.d-slot span{
+  display:block;position:absolute;left:0;right:0;
+  transition:transform .45s cubic-bezier(.4,0,.08,1),opacity .45s ease;
+}
+.d-slot span.cur{transform:translateY(0);opacity:1}
+.d-slot span.out{transform:translateY(-120%);opacity:0}
+.d-slot span.wait{transform:translateY(120%);opacity:0}
+
+/* Size variations */
+.clock-time.big .d-slot,.clock-time.big .d-sep{font-size:min(18vw,110px)}
+.clock-time.sm .d-slot,.clock-time.sm .d-sep{font-size:min(12vw,60px)}
+
 /* ── Card Fan ── */
-.fan{position:fixed;top:0;left:0;right:0;bottom:76px;display:flex;align-items:center;justify-content:center;z-index:5;opacity:1;transition:opacity .5s}
+.fan{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:5;opacity:1;transition:opacity .5s}
 .fan.off{opacity:0;pointer-events:none}
 .fan-card{
   position:absolute;
@@ -71,7 +99,6 @@ html,body{height:100%;overflow:hidden;background:#000;color:var(--text);font-fam
 .fan-card-info{position:absolute;bottom:0;left:0;right:0;padding:24px 10px 10px;background:linear-gradient(transparent,rgba(0,0,0,.82))}
 .fan-card-title{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fan-card-artist{font-size:9px;font-family:var(--font-label);color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
 .fan-card.p-2{transform:rotate(-15deg) translateX(-125%) scale(.7);opacity:.45;z-index:1}
 .fan-card.p-1{transform:rotate(-7deg) translateX(-60%) scale(.85);opacity:.75;z-index:2}
 .fan-card.p0{transform:rotate(0) translateX(0) scale(1);opacity:1;z-index:3}
@@ -80,38 +107,56 @@ html,body{height:100%;overflow:hidden;background:#000;color:var(--text);font-fam
 .fan-card.gone-l{transform:rotate(-20deg) translateX(-200%) scale(.5);opacity:0}
 .fan-card.gone-r{transform:rotate(20deg) translateX(200%) scale(.5);opacity:0}
 
-/* ── Bottom Bar ── */
-.bar{position:fixed;bottom:0;left:0;right:0;height:calc(72px + var(--safe-bottom));padding:0 14px;padding-bottom:var(--safe-bottom);background:rgba(18,18,18,.7);backdrop-filter:blur(50px);-webkit-backdrop-filter:blur(50px);border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;z-index:20;transition:transform .5s ease,opacity .5s ease}
-.bar.off{transform:translateY(100%);opacity:0}
-.bar-prog{position:absolute;top:-2px;left:0;right:0;height:3px;background:rgba(255,255,255,.07)}
-.bar-prog-fill{height:100%;background:var(--text);width:0;transition:width .35s linear}
-.bar-ctrls{display:flex;align-items:center;gap:0;flex-shrink:0}
-.b-btn{background:none;border:none;color:var(--text);cursor:pointer;padding:8px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .1s}
-.b-btn:active{transform:scale(.86)}
-.b-btn.sm svg{width:20px;height:20px}
-.b-btn.lg svg{width:28px;height:28px}
-.b-sep{width:1px;height:26px;background:rgba(255,255,255,.08);margin:0 6px;flex-shrink:0}
-.b-art{width:38px;height:38px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#222}
-.b-art img{width:100%;height:100%;object-fit:cover;display:block}
-.b-info{flex:1;min-width:0;padding:0 6px}
-.b-title{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.b-artist{font-size:10.5px;font-family:var(--font-label);color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ── Floating Controls ── */
+.ctrl-wrap{
+  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+  z-index:20;display:flex;flex-direction:column;align-items:center;gap:10px;
+  transition:opacity var(--hide-speed) ease,transform var(--hide-speed) ease;
+}
+.ctrl-wrap.off{opacity:0;transform:translate(-50%,-50%) scale(.95);pointer-events:none}
+.ctrl-wrap.gone{display:none}
 
-/* ── Top Buttons ── */
-.top-btn{position:fixed;top:calc(10px + var(--safe-top));z-index:15;background:rgba(255,255,255,.08);border:none;color:var(--text2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);cursor:pointer;transition:opacity .3s;opacity:.45;border-radius:50%}
-.top-btn:hover,.top-btn:active{opacity:.85}
+.ctrl-card{
+  background:rgba(18,18,18,.65);backdrop-filter:blur(50px);-webkit-backdrop-filter:blur(50px);
+  border:1px solid rgba(255,255,255,.07);border-radius:20px;
+  padding:14px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;
+  min-width:220px;
+}
+.ctrl-track{display:flex;align-items:center;gap:10px;width:100%}
+.ctrl-art{width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#222}
+.ctrl-art img{width:100%;height:100%;object-fit:cover;display:block}
+.ctrl-info{flex:1;min-width:0}
+.ctrl-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctrl-artist{font-size:11px;font-family:var(--font-label);color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctrl-btns{display:flex;align-items:center;gap:8px}
+.c-btn{background:none;border:none;color:var(--text);cursor:pointer;padding:6px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .1s}
+.c-btn:active{transform:scale(.85)}
+.c-btn.sm svg{width:22px;height:22px}
+.c-btn.lg svg{width:32px;height:32px}
+.ctrl-prog{width:100%;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.ctrl-prog-fill{height:100%;background:var(--text);width:0;transition:width .35s linear}
+
+/* ── Top Buttons (auto-hide) ── */
+.ui-fade{transition:opacity var(--hide-speed) ease;pointer-events:auto}
+.ui-fade.dim{opacity:0;pointer-events:none}
+.top-btn{position:fixed;top:calc(10px + var(--safe-top));z-index:15;background:rgba(255,255,255,.08);border:none;color:var(--text2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);cursor:pointer;border-radius:50%}
 .top-btn svg{display:block}
 #clockToggle{right:12px;width:30px;height:30px;padding:7px}
+#beatToggle{right:48px;width:30px;height:30px;padding:7px}
 #discBtn{left:12px;border-radius:14px;padding:6px 11px;font-family:var(--font-label);font-size:10px;width:auto;height:auto}
 
+.beat-off #beatToggle{opacity:.3}
+
 /* ── Responsive ── */
-@media (max-width:380px){.fan-card{width:min(36vw,150px)}.clock-time{font-size:11vw}}
+@media (max-width:380px){
+  .fan-card{width:min(36vw,150px)}
+  .clock-time.big .d-slot,.clock-time.big .d-sep{font-size:min(15vw,80px)}
+  .clock-time.sm .d-slot,.clock-time.sm .d-sep{font-size:10vw}
+}
 @media (orientation:landscape) and (max-height:500px){
   .fan-card{width:min(20vh,150px)}
-  .clock-time{font-size:min(10vh,48px)}
-  .clock.hero .clock-time{font-size:min(16vh,80px)}
-  .bar{height:calc(56px + var(--safe-bottom))}
-  .fan{bottom:60px}
+  .clock-time.sm .d-slot,.clock-time.sm .d-sep{font-size:min(10vh,48px)}
+  .clock-time.big .d-slot,.clock-time.big .d-sep{font-size:min(16vh,80px)}
 }
 @media (min-width:768px){.fan-card{width:min(22vw,210px)}}
 </style>
@@ -130,26 +175,42 @@ html,body{height:100%;overflow:hidden;background:#000;color:var(--text);font-fam
   </div>
 
   <!-- Clock -->
-  <div class="clock hero" id="clock"><div class="clock-time" id="clockTime">00:00:00</div><div class="clock-date" id="clockDate"></div></div>
+  <div class="clock hero" id="clock">
+    <div class="clock-time big" id="clockTime">
+      <div class="d-slot" id="h0"><span class="cur">0</span></div>
+      <div class="d-slot" id="h1"><span class="cur">0</span></div>
+      <div class="d-sep">:</div>
+      <div class="d-slot" id="m0"><span class="cur">0</span></div>
+      <div class="d-slot" id="m1"><span class="cur">0</span></div>
+      <div class="d-sep">:</div>
+      <div class="d-slot" id="s0"><span class="cur">0</span></div>
+      <div class="d-slot" id="s1"><span class="cur">0</span></div>
+    </div>
+    <div class="clock-date" id="clockDate"></div>
+  </div>
 
-  <!-- Top buttons (hidden until playing) -->
-  <button class="top-btn" id="clockToggle" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></button>
-  <button class="top-btn" id="discBtn" style="display:none">Disconnect</button>
+  <!-- Top buttons -->
+  <button class="top-btn ui-fade" id="clockToggle" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></button>
+  <button class="top-btn ui-fade" id="beatToggle" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></button>
+  <button class="top-btn ui-fade" id="discBtn" style="display:none">Disconnect</button>
 
   <!-- Fan -->
   <div class="fan off" id="fan"></div>
 
-  <!-- Bar -->
-  <div class="bar off" id="bar">
-    <div class="bar-prog"><div class="bar-prog-fill" id="prog"></div></div>
-    <div class="bar-ctrls">
-      <button class="b-btn sm" id="bPrev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-      <button class="b-btn lg" id="bPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
-      <button class="b-btn sm" id="bNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+  <!-- Floating Controls -->
+  <div class="ctrl-wrap gone" id="ctrl">
+    <div class="ctrl-card">
+      <div class="ctrl-track">
+        <div class="ctrl-art"><img id="cArt" src="" alt=""></div>
+        <div class="ctrl-info"><div class="ctrl-title" id="cTitle">--</div><div class="ctrl-artist" id="cArtist">--</div></div>
+      </div>
+      <div class="ctrl-prog"><div class="ctrl-prog-fill" id="prog"></div></div>
+      <div class="ctrl-btns">
+        <button class="c-btn sm" id="bPrev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button class="c-btn lg" id="bPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+        <button class="c-btn sm" id="bNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+      </div>
     </div>
-    <div class="b-sep"></div>
-    <div class="b-art"><img id="bArt" src="" alt=""></div>
-    <div class="b-info"><div class="b-title" id="bTitle">--</div><div class="b-artist" id="bArtist">--</div></div>
   </div>
 </div>
 
@@ -162,7 +223,7 @@ const C={
   tk:'ts_tk',rt:'ts_rt',ex:'ts_ex',cv:'ts_cv',
 };
 const $=s=>document.querySelector(s);
-const fmt=ms=>{const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000);return m+':'+(s<10?'0':'')+s};
+const $$=s=>document.querySelectorAll(s);
 const esc=s=>{const d=document.createElement('span');d.textContent=s;return d.innerHTML};
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
@@ -170,47 +231,81 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function rnd(n){const a=new Uint8Array(n);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('')}
 async function sha(s){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))}
 function b64u(b){return btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
-
-async function doAuth(){
-  const v=rnd(64);localStorage.setItem(C.cv,v);
-  location.href='https://accounts.spotify.com/authorize?'+new URLSearchParams({
-    client_id:C.clientId,response_type:'code',redirect_uri:C.redirect,
-    scope:C.scopes,code_challenge_method:'S256',code_challenge:b64u(await sha(v)),
-  });
-}
-async function swap(code){
-  const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body:new URLSearchParams({client_id:C.clientId,grant_type:'authorization_code',code,redirect_uri:C.redirect,code_verifier:localStorage.getItem(C.cv)})});
-  const d=await r.json();if(d.access_token){save(d);return true}return false;
-}
-async function refresh(){
-  const rt=localStorage.getItem(C.rt);if(!rt)return false;
-  try{const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body:new URLSearchParams({client_id:C.clientId,grant_type:'refresh_token',refresh_token:rt})});
-    const d=await r.json();if(d.access_token){save(d);return true}}catch(e){}return false;
-}
-function save(d){localStorage.setItem(C.tk,d.access_token);if(d.refresh_token)localStorage.setItem(C.rt,d.refresh_token);localStorage.setItem(C.ex,Date.now()+d.expires_in*1000)}
+async function doAuth(){const v=rnd(64);localStorage.setItem(C.cv,v);location.href='https://accounts.spotify.com/authorize?'+new URLSearchParams({client_id:C.clientId,response_type:'code',redirect_uri:C.redirect,scope:C.scopes,code_challenge_method:'S256',code_challenge:b64u(await sha(v))})}
+async function swap(code){const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:C.clientId,grant_type:'authorization_code',code,redirect_uri:C.redirect,code_verifier:localStorage.getItem(C.cv)})});const d=await r.json();if(d.access_token){sv(d);return true}return false}
+async function refresh(){const rt=localStorage.getItem(C.rt);if(!rt)return false;try{const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:C.clientId,grant_type:'refresh_token',refresh_token:rt})});const d=await r.json();if(d.access_token){sv(d);return true}}catch(e){}return false}
+function sv(d){localStorage.setItem(C.tk,d.access_token);if(d.refresh_token)localStorage.setItem(C.rt,d.refresh_token);localStorage.setItem(C.ex,Date.now()+d.expires_in*1000)}
 function tk(){return localStorage.getItem(C.tk)}
 function exp(){return Date.now()>+(localStorage.getItem(C.ex)||0)}
-function clear(){[C.tk,C.rt,C.ex,C.cv].forEach(k=>localStorage.removeItem(k))}
-
-async function api(p){
-  if(exp()&&!await refresh()){goAuth();return null}
-  try{const r=await fetch('https://api.spotify.com/v1'+p,{headers:{Authorization:'Bearer '+tk()}});
-    if(r.status===401){if(!await refresh()){goAuth();return null};return api(p)}
-    if(r.status===204||r.status===202)return null;return r.json()}catch(e){return null}
-}
+function clr(){[C.tk,C.rt,C.ex,C.cv].forEach(k=>localStorage.removeItem(k))}
+async function api(p){if(exp()&&!await refresh()){goAuth();return null}try{const r=await fetch('https://api.spotify.com/v1'+p,{headers:{Authorization:'Bearer '+tk()}});if(r.status===401){if(!await refresh()){goAuth();return null};return api(p)}if(r.status===204||r.status===202)return null;return r.json()}catch(e){return null}}
 async function cmd(m,p){if(exp())await refresh();return fetch('https://api.spotify.com/v1'+p,{method:m,headers:{Authorization:'Bearer '+tk()}})}
 
 /* ═══ STATE ═══ */
-let S={playing:false,tid:null,prog:0,dur:0,title:'',artist:'',art:'',bpm:0,clockOn:true,bgSide:'a',pollT:0,pollP:0};
+let S={playing:false,tid:null,prog:0,dur:0,title:'',artist:'',art:'',bpm:0,clockOn:true,beatOn:true,bgSide:'a',pollT:0,pollP:0,mode:'idle',digits:['0','0','0','0','0','0']};
 
-/* ═══ CLOCK ═══ */
-function tick(){const n=new Date(),h=n.getHours().toString().padStart(2,'0'),m=n.getMinutes().toString().padStart(2,'0'),s=n.getSeconds().toString().padStart(2,'0');
-  $('#clockTime').textContent=h+':'+m+':'+s;$('#clockDate').textContent=n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+/* ═══ CLOCK DIGITS ═══ */
+const slots=['h0','h1','m0','m1','s0','s1'];
+
+function setDigit(slotId,val){
+  const el=$('#'+slotId);
+  const cur=el.querySelector('.cur');
+  if(cur&&cur.textContent===val)return; // no change
+  // Create new digit
+  const next=document.createElement('span');
+  next.textContent=val;
+  next.className='wait';
+  el.appendChild(next);
+  // Animate
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(cur)cur.className='out';
+    next.className='cur';
+  }));
+  // Cleanup old
+  if(cur)setTimeout(()=>{if(cur.parentNode)cur.remove()},500);
+}
+
+function tick(){
+  const n=new Date();
+  const h=n.getHours().toString().padStart(2,'0');
+  const m=n.getMinutes().toString().padStart(2,'0');
+  const s=n.getSeconds().toString().padStart(2,'0');
+  const vals=[h[0],h[1],m[0],m[1],s[0],s[1]];
+  vals.forEach((v,i)=>setDigit(slots[i],v));
+  $('#clockDate').textContent=n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+}
 setInterval(tick,1000);tick();
 
-$('#clockToggle').onclick=()=>{S.clockOn=!S.clockOn;$('#clock').classList.toggle('off',!S.clockOn)};
+/* ═══ AUTO-HIDE UI ═══ */
+let hideTimer=null;
+function showUI(){
+  $$('.ui-fade').forEach(e=>e.classList.remove('dim'));
+  const ctrl=$('#ctrl');
+  if(S.mode==='playing'&&!ctrl.classList.contains('gone'))ctrl.classList.remove('off');
+  clearTimeout(hideTimer);
+  hideTimer=setTimeout(hideUI,3000);
+}
+function hideUI(){
+  $$('.ui-fade').forEach(e=>e.classList.add('dim'));
+  const ctrl=$('#ctrl');
+  if(!ctrl.classList.contains('gone'))ctrl.classList.add('off');
+}
+// Listen for any interaction
+['mousemove','touchstart','click','keydown'].forEach(ev=>{
+  document.addEventListener(ev,showUI,{passive:true});
+});
+
+/* ═══ CLOCK TOGGLE ═══ */
+$('#clockToggle').onclick=()=>{S.clockOn=!S.clockOn;$('#clock').classList.toggle('off',!S.clockOn);showUI()};
+
+/* ═══ BEAT TOGGLE ═══ */
+$('#beatToggle').onclick=()=>{
+  S.beatOn=!S.beatOn;
+  document.body.classList.toggle('beat-off',!S.beatOn);
+  if(!S.beatOn)stopBeat();
+  else if(S.playing&&S.bpm)startBeat(S.bpm);
+  showUI();
+};
 
 /* ═══ BACKGROUND ═══ */
 function setBg(url){
@@ -225,25 +320,18 @@ function setBg(url){
 /* ═══ BEAT SYNC ═══ */
 let beatId=null;
 function startBeat(bpm){
-  stopBeat();if(!bpm||bpm<40)bpm=120;S.bpm=bpm;
+  stopBeat();if(!S.beatOn)return;if(!bpm||bpm<40)bpm=120;S.bpm=bpm;
   const ms=60000/bpm,el=$('#bgBeat');
-  // Use smooth sine-like pulse via requestAnimationFrame
-  let last=performance.now();
   function frame(now){
-    if(!S.playing){el.style.opacity='0';beatId=requestAnimationFrame(frame);return}
-    const phase=((now%ms)/ms)*Math.PI*2;
-    const v=Math.max(0,Math.sin(phase))*.9; // 0-0.9 smooth pulse
+    if(!S.playing||!S.beatOn){el.style.opacity='0';beatId=requestAnimationFrame(frame);return}
+    const v=Math.max(0,Math.sin(((now%ms)/ms)*Math.PI*2))*.85;
     el.style.opacity=v;
     beatId=requestAnimationFrame(frame);
   }
   beatId=requestAnimationFrame(frame);
 }
 function stopBeat(){if(beatId){cancelAnimationFrame(beatId);beatId=null;$('#bgBeat').style.opacity='0'}}
-
-async function getBpm(id){
-  const d=await api('/audio-features/'+id);
-  return d?.tempo||0;
-}
+async function getBpm(id){const d=await api('/audio-features/'+id);return d?.tempo||0}
 
 /* ═══ FAN ═══ */
 function renderFan(cards){
@@ -255,16 +343,15 @@ function renderFan(cards){
     d.className='fan-card gone-'+(p<=0?'l':'r');
     d.innerHTML=`<img src="${c.art}" alt=""><div class="fan-card-info"><div class="fan-card-title">${esc(c.name)}</div><div class="fan-card-artist">${esc(c.artist)}</div></div>`;
     el.appendChild(d);
-    // Animate in
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      d.className='fan-card p'+p;
-    }));
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{d.className='fan-card p'+p}));
   });
 }
 
-/* ═══ BAR ═══ */
-function renderBar(){
-  $('#bArt').src=S.art||'';$('#bTitle').textContent=S.title||'--';$('#bArtist').textContent=S.artist||'--';
+/* ═══ CONTROLS ═══ */
+function renderCtrl(){
+  $('#cArt').src=S.art||'';
+  $('#cTitle').textContent=S.title||'--';
+  $('#cArtist').textContent=S.artist||'--';
   playIcon();
 }
 function playIcon(){
@@ -288,31 +375,21 @@ function stopProg(){if(progRAF){cancelAnimationFrame(progRAF);progRAF=null}}
 /* ═══ TRACK TRANSITION ═══ */
 async function transition(d){
   const v=$('#veil');
-  v.classList.add('on');
-  await sleep(380);
-
+  v.classList.add('on');await sleep(380);
   S.tid=d.id;S.title=d.title;S.artist=d.artist;S.art=d.art;S.prog=d.prog;S.dur=d.dur;S.playing=d.playing;
   S.pollT=Date.now();S.pollP=d.prog;
-
   setBg(S.art);
-
-  // Fetch queue + recent in parallel
   const [q,rc]=await Promise.all([api('/me/player/queue'),api('/me/player/recently-played?limit=5')]);
   const cur={name:S.title,artist:S.artist,art:S.art,cur:true};
-  const right=(q?.queue||[]).slice(0,2).map(t=>({name:t.name,artist:(t.artists||[]).map(a=>a.name).join(', '),art:t.album?.images?.[0]?.url||'',cur:false}));
-  const left=(rc?.items||[]).slice(0,2).reverse().map(it=>({name:it.track.name,artist:(it.track.artists||[]).map(a=>a.name).join(', '),art:it.track.album?.images?.[0]?.url||'',cur:false}));
-  // Deduplicate by art url
   const seen=new Set([S.art]);
-  const dedupe=arr=>arr.filter(c=>{if(seen.has(c.art))return false;seen.add(c.art);return true});
-  renderFan([...dedupe(left),cur,...dedupe(right)]);
-  renderBar();
-
-  // BPM
+  const dedup=arr=>arr.filter(c=>{if(!c.art||seen.has(c.art))return false;seen.add(c.art);return true});
+  const right=dedup((q?.queue||[]).slice(0,2).map(t=>({name:t.name,artist:(t.artists||[]).map(a=>a.name).join(', '),art:t.album?.images?.[0]?.url||'',cur:false})));
+  const left=dedup((rc?.items||[]).slice(0,2).reverse().map(it=>({name:it.track.name,artist:(it.track.artists||[]).map(a=>a.name).join(', '),art:it.track.album?.images?.[0]?.url||'',cur:false})));
+  renderFan([...left,cur,...right]);
+  renderCtrl();
   const bpm=await getBpm(S.tid);
   startBeat(bpm);
-
-  await sleep(180);
-  v.classList.remove('on');
+  await sleep(180);v.classList.remove('on');
 }
 
 /* ═══ POLL ═══ */
@@ -326,9 +403,8 @@ async function poll(){
       await transition({id:d.item.id,title:d.item.name,artist:(d.item.artists||[]).map(a=>a.name).join(', '),art:d.item.album?.images?.[0]?.url||'',prog:d.progress_ms||0,dur:d.item.duration_ms||0,playing:d.is_playing});
       goPlaying();
     }else{
-      S.prog=d.progress_ms||0;S.dur=d.item.duration_ms||0;
-      playIcon();
-      if(!S.playing)stopBeat();else if(!beatId&&S.bpm)startBeat(S.bpm);
+      S.prog=d.progress_ms||0;S.dur=d.item.duration_ms||0;playIcon();
+      if(!S.playing)stopBeat();else if(!beatId&&S.bpm&&S.beatOn)startBeat(S.bpm);
     }
     startProg();
   }else{
@@ -338,27 +414,34 @@ async function poll(){
 
 /* ═══ MODES ═══ */
 function goPlaying(){
-  $('#fan').classList.remove('off');$('#bar').classList.remove('off');
+  S.mode='playing';
+  $('#fan').classList.remove('off');
+  $('#ctrl').classList.remove('gone');
   $('#clock').classList.remove('hero');
-  $('#clockToggle').style.display='';$('#discBtn').style.display='';
+  $('#clockTime').classList.remove('big');$('#clockTime').classList.add('sm');
+  $('#clockToggle').style.display='';$('#beatToggle').style.display='';$('#discBtn').style.display='';
+  showUI(); // start auto-hide timer
 }
 function goIdle(){
-  $('#fan').classList.add('off');$('#bar').classList.add('off');
+  S.mode='idle';
+  $('#fan').classList.add('off');
+  $('#ctrl').classList.add('gone');$('#ctrl').classList.add('off');
   $('#clock').classList.add('hero');$('#clock').classList.remove('off');
+  $('#clockTime').classList.add('big');$('#clockTime').classList.remove('sm');
   S.clockOn=true;
-  $('#clockToggle').style.display='none';$('#discBtn').style.display='none';
+  $('#clockToggle').style.display='none';$('#beatToggle').style.display='none';$('#discBtn').style.display='none';
   $('#bgA').style.opacity='0';$('#bgB').style.opacity='0';
 }
 
-/* ═══ CONTROLS ═══ */
+/* ═══ CONTROL EVENTS ═══ */
 $('#bPlay').onclick=async()=>{
   if(S.playing){await cmd('PUT','/me/player/pause');S.playing=false;stopBeat()}
-  else{await cmd('PUT','/me/player/play');S.playing=true;if(S.bpm)startBeat(S.bpm)}
-  S.pollT=Date.now();S.pollP=S.prog;playIcon();
+  else{await cmd('PUT','/me/player/play');S.playing=true;if(S.bpm&&S.beatOn)startBeat(S.bpm)}
+  S.pollT=Date.now();S.pollP=S.prog;playIcon();showUI();
 };
-$('#bNext').onclick=async()=>{await cmd('POST','/me/player/next');setTimeout(poll,500)};
-$('#bPrev').onclick=async()=>{await cmd('POST','/me/player/previous');setTimeout(poll,500)};
-$('#discBtn').onclick=()=>{clear();goAuth()};
+$('#bNext').onclick=async()=>{await cmd('POST','/me/player/next');setTimeout(poll,500);showUI()};
+$('#bPrev').onclick=async()=>{await cmd('POST','/me/player/previous');setTimeout(poll,500);showUI()};
+$('#discBtn').onclick=()=>{clr();goAuth()};
 
 /* ═══ AUTH FLOW ═══ */
 function goAuth(){if(pollId)clearInterval(pollId);stopBeat();stopProg();$('#auth').classList.remove('out');goIdle()}
