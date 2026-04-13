@@ -8,7 +8,6 @@
 <meta name="theme-color" content="#000000">
 <title>Timessss</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23000'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%23fff' stroke-width='2.5'/%3E%3Cline x1='50' y1='50' x2='50' y2='22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='50' y1='50' x2='63' y2='56' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='50' r='2.5' fill='%23fff'/%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23000'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%23fff' stroke-width='2.5'/%3E%3Cline x1='50' y1='50' x2='50' y2='22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='50' y1='50' x2='63' y2='56' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='50' r='2.5' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,499 +15,367 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#000;--surface:#0a0a0a;--card:#111;--text:#fff;--text2:#888;--accent:#1db954;
+  --text:#fff;--text2:rgba(255,255,255,.55);
   --font-ui:'Quicksand',sans-serif;
   --font-label:'Ubuntu',sans-serif;
   --font-num:'GT America','Outfit','DM Sans','Ubuntu',sans-serif;
   --safe-top:env(safe-area-inset-top,0px);
   --safe-bottom:env(safe-area-inset-bottom,0px);
 }
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-ui);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-#app{height:100%;width:100%;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+html,body{height:100%;overflow:hidden;background:#000;color:var(--text);font-family:var(--font-ui);-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#app{height:100%;width:100%;position:relative;overflow:hidden}
 
-/* ── BG Gradient ── */
-.bg-glow{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity 1.2s ease}
-.bg-glow.active{opacity:1}
-.bg-glow-inner{width:100%;height:100%;filter:blur(120px) saturate(1.4);opacity:.25}
+/* ── Background ── */
+.bg{position:fixed;inset:0;z-index:0}
+.bg-layer{position:absolute;inset:-60px;background-size:cover;background-position:center;filter:blur(90px) saturate(1.5) brightness(.65);transition:opacity 1.4s ease;will-change:opacity,filter}
+.bg-layer.a{opacity:1}.bg-layer.b{opacity:0}
+.bg-overlay{position:absolute;inset:0;background:rgba(0,0,0,.3)}
+.bg-beat{position:absolute;inset:-60px;background:radial-gradient(ellipse at center,rgba(255,255,255,.06) 0%,transparent 70%);opacity:0;will-change:opacity;pointer-events:none}
 
-/* ── Auth Screen ── */
-#auth-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:10;transition:opacity .6s,transform .6s}
-#auth-screen.hidden{opacity:0;transform:scale(.96);pointer-events:none}
-.auth-logo{width:48px;height:48px;opacity:.7}
-.auth-title{font-family:var(--font-ui);font-size:28px;font-weight:600;letter-spacing:-.5px}
-.auth-sub{font-family:var(--font-label);font-size:14px;color:var(--text2);max-width:260px;text-align:center;line-height:1.5}
-.auth-btn{
-  display:inline-flex;align-items:center;gap:10px;
-  padding:14px 32px;border-radius:50px;border:none;
-  background:#fff;color:#000;font-family:var(--font-ui);font-size:15px;font-weight:600;
-  cursor:pointer;transition:transform .2s,box-shadow .2s;
-}
-.auth-btn:active{transform:scale(.96)}
+/* ── Transition Veil ── */
+.veil{position:fixed;inset:0;background:#000;opacity:0;z-index:50;pointer-events:none;transition:opacity .45s ease}
+.veil.on{opacity:.65}
+
+/* ── Auth ── */
+#auth{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:#000;transition:opacity .6s,transform .6s}
+#auth.out{opacity:0;transform:scale(.95);pointer-events:none}
+.auth-logo{width:44px;height:44px;opacity:.65}
+.auth-title{font-size:26px;font-weight:600;letter-spacing:-.5px}
+.auth-sub{font-family:var(--font-label);font-size:13px;color:var(--text2);max-width:240px;text-align:center;line-height:1.5}
+.auth-btn{display:inline-flex;align-items:center;gap:10px;padding:13px 30px;border-radius:50px;border:none;background:#fff;color:#000;font-family:var(--font-ui);font-size:14px;font-weight:600;cursor:pointer;transition:transform .2s}
+.auth-btn:active{transform:scale(.95)}
 .auth-btn svg{width:20px;height:20px}
 
-/* ── Main View ── */
-#main-view{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;opacity:0;transform:translateY(20px);transition:opacity .8s ease,transform .8s ease;pointer-events:none;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
-#main-view.active{opacity:1;transform:translateY(0);pointer-events:auto}
-
 /* ── Clock ── */
-.clock-wrap{display:flex;flex-direction:column;align-items:center;transition:all .8s cubic-bezier(.4,0,.2,1);z-index:2;position:relative}
-.clock-wrap.hero{flex:1;justify-content:center}
-.clock-wrap.compact{padding-top:16px;flex:0}
-.clock-time{font-family:var(--font-num);font-weight:300;letter-spacing:-2px;line-height:1;transition:font-size .8s cubic-bezier(.4,0,.2,1)}
-.clock-time.hero{font-size:min(28vw,140px)}
-.clock-time.compact{font-size:min(14vw,64px)}
-.clock-date{font-family:var(--font-label);font-weight:300;color:var(--text2);margin-top:8px;transition:font-size .6s;letter-spacing:.5px}
-.clock-date.hero{font-size:min(4vw,18px)}
-.clock-date.compact{font-size:12px}
-.clock-seconds{font-family:var(--font-num);font-weight:300;color:var(--text2);transition:font-size .6s,opacity .6s}
-.clock-seconds.hero{font-size:min(6vw,28px);opacity:.5;margin-top:4px}
-.clock-seconds.compact{font-size:0;opacity:0;height:0;margin:0}
+.clock{position:fixed;top:calc(16px + var(--safe-top));left:0;right:0;display:flex;flex-direction:column;align-items:center;z-index:10;pointer-events:none;transition:opacity .5s ease,transform .5s ease}
+.clock.off{opacity:0;transform:translateY(-16px)}
+.clock-time{font-family:var(--font-num);font-size:min(16vw,72px);font-weight:300;letter-spacing:-1.5px;line-height:1;text-shadow:0 2px 24px rgba(0,0,0,.6)}
+.clock-date{font-family:var(--font-label);font-size:min(3.2vw,13px);font-weight:300;color:var(--text2);margin-top:4px;letter-spacing:.4px;text-shadow:0 1px 10px rgba(0,0,0,.5)}
+.clock.hero{top:50%;transform:translateY(-50%)}
+.clock.hero .clock-time{font-size:min(28vw,140px)}
+.clock.hero .clock-date{font-size:min(4vw,17px);margin-top:8px}
+.clock.hero.off{opacity:0;transform:translateY(calc(-50% - 16px))}
 
 /* ── Card Fan ── */
-.card-fan-wrap{position:relative;width:100%;display:flex;justify-content:center;align-items:center;transition:all .8s cubic-bezier(.4,0,.2,1);overflow:visible}
-.card-fan-wrap.hidden{height:0;opacity:0;pointer-events:none}
-.card-fan-wrap.visible{height:min(52vw,280px);opacity:1;margin:12px 0}
-.card-fan{position:relative;width:min(42vw,200px);height:min(42vw,200px)}
+.fan{position:fixed;top:0;left:0;right:0;bottom:76px;display:flex;align-items:center;justify-content:center;z-index:5;opacity:1;transition:opacity .5s}
+.fan.off{opacity:0;pointer-events:none}
 .fan-card{
-  position:absolute;width:min(38vw,180px);height:min(38vw,180px);
-  border-radius:16px;overflow:hidden;
-  background:var(--card);
-  box-shadow:0 8px 32px rgba(0,0,0,.6);
-  transition:transform .7s cubic-bezier(.4,0,.2,1),opacity .5s;
-  transform-origin:center bottom;
-  left:50%;top:50%;
+  position:absolute;
+  width:min(40vw,190px);aspect-ratio:3/4;
+  border-radius:14px;overflow:hidden;background:#111;
+  box-shadow:0 10px 40px rgba(0,0,0,.55);
+  transition:transform .65s cubic-bezier(.4,0,.12,1),opacity .45s ease;
+  will-change:transform,opacity;
 }
-.fan-card img{width:100%;height:100%;object-fit:cover}
-.fan-card:nth-child(1){transform:translate(-50%,-50%) rotate(-18deg) translateX(-40%);z-index:1}
-.fan-card:nth-child(2){transform:translate(-50%,-50%) rotate(-8deg) translateX(-15%);z-index:2}
-.fan-card:nth-child(3){transform:translate(-50%,-50%) rotate(0deg);z-index:3}
-.fan-card:nth-child(4){transform:translate(-50%,-50%) rotate(8deg) translateX(15%);z-index:4}
-.fan-card:nth-child(5){transform:translate(-50%,-50%) rotate(18deg) translateX(40%);z-index:5}
+.fan-card img{width:100%;height:100%;object-fit:cover;display:block}
+.fan-card-info{position:absolute;bottom:0;left:0;right:0;padding:24px 10px 10px;background:linear-gradient(transparent,rgba(0,0,0,.82))}
+.fan-card-title{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fan-card-artist{font-size:9px;font-family:var(--font-label);color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* ── Now Playing ── */
-.np-wrap{
-  width:calc(100% - 40px);max-width:400px;
-  transition:all .8s cubic-bezier(.4,0,.2,1);overflow:hidden;z-index:3;
-}
-.np-wrap.hidden{max-height:0;opacity:0;margin:0;pointer-events:none}
-.np-wrap.visible{max-height:400px;opacity:1;margin-bottom:20px}
-.np-card{
-  background:rgba(255,255,255,.06);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
-  border-radius:20px;padding:16px;
-  display:flex;gap:14px;align-items:center;
-  border:1px solid rgba(255,255,255,.08);
-}
-.np-art{width:72px;height:72px;border-radius:12px;overflow:hidden;flex-shrink:0;background:var(--card)}
-.np-art img{width:100%;height:100%;object-fit:cover}
-.np-info{flex:1;min-width:0}
-.np-title{font-family:var(--font-ui);font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.np-artist{font-family:var(--font-label);font-size:12px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.np-progress{width:100%;height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:10px;overflow:hidden}
-.np-progress-bar{height:100%;background:var(--text);border-radius:2px;transition:width .5s linear}
-.np-controls{display:flex;align-items:center;gap:4px;margin-top:8px}
-.np-btn{background:none;border:none;color:var(--text);cursor:pointer;padding:6px;border-radius:50%;transition:opacity .2s,transform .15s}
-.np-btn:active{transform:scale(.88)}
-.np-btn:hover{opacity:.8}
-.np-btn svg{width:20px;height:20px;display:block}
-.np-btn.play-btn svg{width:28px;height:28px}
-.np-time-row{display:flex;justify-content:space-between;font-family:var(--font-num);font-size:10px;color:var(--text2);margin-top:4px}
+.fan-card.p-2{transform:rotate(-15deg) translateX(-125%) scale(.7);opacity:.45;z-index:1}
+.fan-card.p-1{transform:rotate(-7deg) translateX(-60%) scale(.85);opacity:.75;z-index:2}
+.fan-card.p0{transform:rotate(0) translateX(0) scale(1);opacity:1;z-index:3}
+.fan-card.p1{transform:rotate(7deg) translateX(60%) scale(.85);opacity:.75;z-index:2}
+.fan-card.p2{transform:rotate(15deg) translateX(125%) scale(.7);opacity:.45;z-index:1}
+.fan-card.gone-l{transform:rotate(-20deg) translateX(-200%) scale(.5);opacity:0}
+.fan-card.gone-r{transform:rotate(20deg) translateX(200%) scale(.5);opacity:0}
 
-/* ── Disconnect ── */
-.disconnect-btn{
-  position:fixed;bottom:calc(20px + var(--safe-bottom));right:20px;z-index:20;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
-  color:var(--text2);font-family:var(--font-label);font-size:11px;
-  padding:8px 14px;border-radius:20px;cursor:pointer;
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  transition:opacity .3s;
-}
-.disconnect-btn:hover{color:var(--text)}
+/* ── Bottom Bar ── */
+.bar{position:fixed;bottom:0;left:0;right:0;height:calc(72px + var(--safe-bottom));padding:0 14px;padding-bottom:var(--safe-bottom);background:rgba(18,18,18,.7);backdrop-filter:blur(50px);-webkit-backdrop-filter:blur(50px);border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;z-index:20;transition:transform .5s ease,opacity .5s ease}
+.bar.off{transform:translateY(100%);opacity:0}
+.bar-prog{position:absolute;top:-2px;left:0;right:0;height:3px;background:rgba(255,255,255,.07)}
+.bar-prog-fill{height:100%;background:var(--text);width:0;transition:width .35s linear}
+.bar-ctrls{display:flex;align-items:center;gap:0;flex-shrink:0}
+.b-btn{background:none;border:none;color:var(--text);cursor:pointer;padding:8px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .1s}
+.b-btn:active{transform:scale(.86)}
+.b-btn.sm svg{width:20px;height:20px}
+.b-btn.lg svg{width:28px;height:28px}
+.b-sep{width:1px;height:26px;background:rgba(255,255,255,.08);margin:0 6px;flex-shrink:0}
+.b-art{width:38px;height:38px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#222}
+.b-art img{width:100%;height:100%;object-fit:cover;display:block}
+.b-info{flex:1;min-width:0;padding:0 6px}
+.b-title{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.b-artist{font-size:10.5px;font-family:var(--font-label);color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* ── Landscape tweaks ── */
+/* ── Top Buttons ── */
+.top-btn{position:fixed;top:calc(10px + var(--safe-top));z-index:15;background:rgba(255,255,255,.08);border:none;color:var(--text2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);cursor:pointer;transition:opacity .3s;opacity:.45;border-radius:50%}
+.top-btn:hover,.top-btn:active{opacity:.85}
+.top-btn svg{display:block}
+#clockToggle{right:12px;width:30px;height:30px;padding:7px}
+#discBtn{left:12px;border-radius:14px;padding:6px 11px;font-family:var(--font-label);font-size:10px;width:auto;height:auto}
+
+/* ── Responsive ── */
+@media (max-width:380px){.fan-card{width:min(36vw,150px)}.clock-time{font-size:15vw}}
 @media (orientation:landscape) and (max-height:500px){
-  #main-view{flex-direction:row;padding:8px 20px}
-  .clock-wrap.compact{padding-top:0;justify-content:center;flex:1}
-  .clock-wrap.hero{flex:1}
-  .card-fan-wrap.visible{height:min(40vh,200px);margin:0 8px}
-  .fan-card{width:min(30vh,140px);height:min(30vh,140px)}
-  .card-fan{width:min(30vh,140px);height:min(30vh,140px)}
-  .np-wrap{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);width:calc(100% - 40px)}
+  .fan-card{width:min(20vh,150px)}
+  .clock-time{font-size:min(12vh,56px)}
+  .clock.hero .clock-time{font-size:min(20vh,90px)}
+  .bar{height:calc(56px + var(--safe-bottom))}
+  .fan{bottom:60px}
 }
-
-/* ── Small phones ── */
-@media (max-width:360px){
-  .clock-time.hero{font-size:24vw}
-  .clock-time.compact{font-size:12vw}
-  .fan-card{width:32vw;height:32vw}
-  .card-fan{width:32vw;height:32vw}
-  .card-fan-wrap.visible{height:44vw}
-}
-
-/* ── Animations ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.anim-fade{animation:fadeUp .6s ease both}
-.pulse{animation:pulse 1.6s ease infinite}
+@media (min-width:768px){.fan-card{width:min(22vw,210px)}}
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- BG Glow (dynamic from album art) -->
-  <div class="bg-glow" id="bgGlow"><div class="bg-glow-inner" id="bgGlowInner"></div></div>
+  <div class="bg"><div class="bg-layer a" id="bgA"></div><div class="bg-layer b" id="bgB"></div><div class="bg-overlay"></div><div class="bg-beat" id="bgBeat"></div></div>
+  <div class="veil" id="veil"></div>
 
   <!-- Auth -->
-  <div id="auth-screen">
-    <svg class="auth-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="34" stroke="#fff" stroke-width="2.5"/>
-      <line x1="50" y1="50" x2="50" y2="22" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-      <line x1="50" y1="50" x2="63" y2="56" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
-      <circle cx="50" cy="50" r="2.5" fill="#fff"/>
-    </svg>
+  <div id="auth">
+    <svg class="auth-logo" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="34" stroke="#fff" stroke-width="2.5"/><line x1="50" y1="50" x2="50" y2="22" stroke="#fff" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="50" x2="63" y2="56" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="50" r="2.5" fill="#fff"/></svg>
     <div class="auth-title">Timessss</div>
-    <div class="auth-sub">Connect your Spotify to bring your music into your clock</div>
-    <button class="auth-btn" id="authBtn">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381C8.64 5.801 15.6 6.06 20.04 8.82c.541.3.719 1.02.42 1.56-.299.421-1.02.599-1.379.3z"/></svg>
-      Enter Store
-    </button>
+    <div class="auth-sub">Connect Spotify to bring your music to life</div>
+    <button class="auth-btn" id="authBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381C8.64 5.801 15.6 6.06 20.04 8.82c.541.3.719 1.02.42 1.56-.299.421-1.02.599-1.379.3z"/></svg>Connect Spotify</button>
   </div>
 
-  <!-- Main View -->
-  <div id="main-view">
-    <div class="clock-wrap hero" id="clockWrap">
-      <div class="clock-time hero" id="clockTime">00:00</div>
-      <div class="clock-seconds hero" id="clockSec">00</div>
-      <div class="clock-date hero" id="clockDate"></div>
+  <!-- Clock -->
+  <div class="clock hero" id="clock"><div class="clock-time" id="clockTime">00:00</div><div class="clock-date" id="clockDate"></div></div>
+
+  <!-- Top buttons (hidden until playing) -->
+  <button class="top-btn" id="clockToggle" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></button>
+  <button class="top-btn" id="discBtn" style="display:none">Disconnect</button>
+
+  <!-- Fan -->
+  <div class="fan off" id="fan"></div>
+
+  <!-- Bar -->
+  <div class="bar off" id="bar">
+    <div class="bar-prog"><div class="bar-prog-fill" id="prog"></div></div>
+    <div class="bar-ctrls">
+      <button class="b-btn sm" id="bPrev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+      <button class="b-btn lg" id="bPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+      <button class="b-btn sm" id="bNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
     </div>
-    <div class="card-fan-wrap hidden" id="cardFanWrap">
-      <div class="card-fan" id="cardFan"></div>
-    </div>
-    <div class="np-wrap hidden" id="npWrap">
-      <div class="np-card">
-        <div class="np-art"><img id="npArt" src="" alt=""></div>
-        <div class="np-info">
-          <div class="np-title" id="npTitle">--</div>
-          <div class="np-artist" id="npArtist">--</div>
-          <div class="np-progress"><div class="np-progress-bar" id="npBar"></div></div>
-          <div class="np-time-row"><span id="npElapsed">0:00</span><span id="npDuration">0:00</span></div>
-          <div class="np-controls">
-            <button class="np-btn" id="btnPrev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-            <button class="np-btn play-btn" id="btnPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
-            <button class="np-btn" id="btnNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <button class="disconnect-btn" id="disconnectBtn">Disconnect</button>
+    <div class="b-sep"></div>
+    <div class="b-art"><img id="bArt" src="" alt=""></div>
+    <div class="b-info"><div class="b-title" id="bTitle">--</div><div class="b-artist" id="bArtist">--</div></div>
   </div>
 </div>
 
 <script>
+/* ═══ CONFIG ═══ */
 const C={
   clientId:'2dba0d8b0d3540c79971f906ab1e3589',
   redirect:'https://nanthe27.github.io/Timessss/',
   scopes:'user-read-playback-state user-modify-playback-state user-read-recently-played user-read-currently-playing',
-  tokenKey:'timessss_token',
-  refreshKey:'timessss_refresh',
-  expiryKey:'timessss_expiry',
-  codeVerifierKey:'timessss_cv',
+  tk:'ts_tk',rt:'ts_rt',ex:'ts_ex',cv:'ts_cv',
 };
-
-// ── Helpers ──
 const $=s=>document.querySelector(s);
 const fmt=ms=>{const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000);return m+':'+(s<10?'0':'')+s};
+const esc=s=>{const d=document.createElement('span');d.textContent=s;return d.innerHTML};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
-// ── PKCE ──
-function genRandom(len){const a=new Uint8Array(len);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('')}
-async function sha256(plain){const enc=new TextEncoder().encode(plain);const hash=await crypto.subtle.digest('SHA-256',enc);return hash}
-function base64url(buf){return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+/* ═══ AUTH ═══ */
+function rnd(n){const a=new Uint8Array(n);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('')}
+async function sha(s){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))}
+function b64u(b){return btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 
-async function startAuth(){
-  const verifier=genRandom(64);
-  localStorage.setItem(C.codeVerifierKey,verifier);
-  const challenge=base64url(await sha256(verifier));
-  const params=new URLSearchParams({
-    client_id:C.clientId,
-    response_type:'code',
-    redirect_uri:C.redirect,
-    scope:C.scopes,
-    code_challenge_method:'S256',
-    code_challenge:challenge,
+async function doAuth(){
+  const v=rnd(64);localStorage.setItem(C.cv,v);
+  location.href='https://accounts.spotify.com/authorize?'+new URLSearchParams({
+    client_id:C.clientId,response_type:'code',redirect_uri:C.redirect,
+    scope:C.scopes,code_challenge_method:'S256',code_challenge:b64u(await sha(v)),
   });
-  location.href='https://accounts.spotify.com/authorize?'+params;
+}
+async function swap(code){
+  const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams({client_id:C.clientId,grant_type:'authorization_code',code,redirect_uri:C.redirect,code_verifier:localStorage.getItem(C.cv)})});
+  const d=await r.json();if(d.access_token){save(d);return true}return false;
+}
+async function refresh(){
+  const rt=localStorage.getItem(C.rt);if(!rt)return false;
+  try{const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams({client_id:C.clientId,grant_type:'refresh_token',refresh_token:rt})});
+    const d=await r.json();if(d.access_token){save(d);return true}}catch(e){}return false;
+}
+function save(d){localStorage.setItem(C.tk,d.access_token);if(d.refresh_token)localStorage.setItem(C.rt,d.refresh_token);localStorage.setItem(C.ex,Date.now()+d.expires_in*1000)}
+function tk(){return localStorage.getItem(C.tk)}
+function exp(){return Date.now()>+(localStorage.getItem(C.ex)||0)}
+function clear(){[C.tk,C.rt,C.ex,C.cv].forEach(k=>localStorage.removeItem(k))}
+
+async function api(p){
+  if(exp()&&!await refresh()){goAuth();return null}
+  try{const r=await fetch('https://api.spotify.com/v1'+p,{headers:{Authorization:'Bearer '+tk()}});
+    if(r.status===401){if(!await refresh()){goAuth();return null};return api(p)}
+    if(r.status===204||r.status===202)return null;return r.json()}catch(e){return null}
+}
+async function cmd(m,p){if(exp())await refresh();return fetch('https://api.spotify.com/v1'+p,{method:m,headers:{Authorization:'Bearer '+tk()}})}
+
+/* ═══ STATE ═══ */
+let S={playing:false,tid:null,prog:0,dur:0,title:'',artist:'',art:'',bpm:0,clockOn:true,bgSide:'a',pollT:0,pollP:0};
+
+/* ═══ CLOCK ═══ */
+function tick(){const n=new Date(),h=n.getHours().toString().padStart(2,'0'),m=n.getMinutes().toString().padStart(2,'0');
+  $('#clockTime').textContent=h+':'+m;$('#clockDate').textContent=n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+setInterval(tick,1000);tick();
+
+$('#clockToggle').onclick=()=>{S.clockOn=!S.clockOn;$('#clock').classList.toggle('off',!S.clockOn)};
+
+/* ═══ BACKGROUND ═══ */
+function setBg(url){
+  if(!url)return;
+  const nxt=S.bgSide==='a'?'b':'a';
+  const nE=$('#bg'+nxt.toUpperCase()),cE=$('#bg'+S.bgSide.toUpperCase());
+  nE.style.backgroundImage=`url(${url})`;
+  requestAnimationFrame(()=>{nE.style.opacity='1';cE.style.opacity='0'});
+  S.bgSide=nxt;
 }
 
-async function exchangeCode(code){
-  const verifier=localStorage.getItem(C.codeVerifierKey);
-  const res=await fetch('https://accounts.spotify.com/api/token',{
-    method:'POST',
-    headers:{'Content-Type':'application/x-www-form-urlencoded'},
-    body:new URLSearchParams({
-      client_id:C.clientId,
-      grant_type:'authorization_code',
-      code,
-      redirect_uri:C.redirect,
-      code_verifier:verifier,
-    }),
-  });
-  const d=await res.json();
-  if(d.access_token){
-    saveTokens(d);
-    return true;
+/* ═══ BEAT SYNC ═══ */
+let beatId=null;
+function startBeat(bpm){
+  stopBeat();if(!bpm||bpm<40)bpm=120;S.bpm=bpm;
+  const ms=60000/bpm,el=$('#bgBeat');
+  // Use smooth sine-like pulse via requestAnimationFrame
+  let last=performance.now();
+  function frame(now){
+    if(!S.playing){el.style.opacity='0';beatId=requestAnimationFrame(frame);return}
+    const phase=((now%ms)/ms)*Math.PI*2;
+    const v=Math.max(0,Math.sin(phase))*.9; // 0-0.9 smooth pulse
+    el.style.opacity=v;
+    beatId=requestAnimationFrame(frame);
   }
-  return false;
+  beatId=requestAnimationFrame(frame);
+}
+function stopBeat(){if(beatId){cancelAnimationFrame(beatId);beatId=null;$('#bgBeat').style.opacity='0'}}
+
+async function getBpm(id){
+  const d=await api('/audio-features/'+id);
+  return d?.tempo||0;
 }
 
-async function refreshToken(){
-  const rt=localStorage.getItem(C.refreshKey);
-  if(!rt)return false;
-  try{
-    const res=await fetch('https://accounts.spotify.com/api/token',{
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:new URLSearchParams({
-        client_id:C.clientId,
-        grant_type:'refresh_token',
-        refresh_token:rt,
-      }),
-    });
-    const d=await res.json();
-    if(d.access_token){saveTokens(d);return true}
-  }catch(e){}
-  return false;
-}
-
-function saveTokens(d){
-  localStorage.setItem(C.tokenKey,d.access_token);
-  if(d.refresh_token)localStorage.setItem(C.refreshKey,d.refresh_token);
-  localStorage.setItem(C.expiryKey,Date.now()+d.expires_in*1000);
-}
-
-function getToken(){return localStorage.getItem(C.tokenKey)}
-function isExpired(){return Date.now()>parseInt(localStorage.getItem(C.expiryKey)||'0')}
-function clearTokens(){[C.tokenKey,C.refreshKey,C.expiryKey,C.codeVerifierKey].forEach(k=>localStorage.removeItem(k))}
-
-async function api(path){
-  if(isExpired()){const ok=await refreshToken();if(!ok){showAuth();return null}}
-  try{
-    const res=await fetch('https://api.spotify.com/v1'+path,{headers:{Authorization:'Bearer '+getToken()}});
-    if(res.status===401){const ok=await refreshToken();if(!ok){showAuth();return null};return api(path)}
-    if(res.status===204)return null;
-    return res.json();
-  }catch(e){return null}
-}
-
-async function apiPut(path){
-  if(isExpired())await refreshToken();
-  return fetch('https://api.spotify.com/v1'+path,{method:'PUT',headers:{Authorization:'Bearer '+getToken()}});
-}
-async function apiPost(path){
-  if(isExpired())await refreshToken();
-  return fetch('https://api.spotify.com/v1'+path,{method:'POST',headers:{Authorization:'Bearer '+getToken()}});
-}
-
-// ── State ──
-let S={
-  playing:false,
-  trackId:null,
-  progress:0,
-  duration:0,
-  albumArt:'',
-  title:'',
-  artist:'',
-  recentArts:[],
-  dominantColor:null,
-};
-
-// ── Clock ──
-function tickClock(){
-  const now=new Date();
-  const h=now.getHours().toString().padStart(2,'0');
-  const m=now.getMinutes().toString().padStart(2,'0');
-  const s=now.getSeconds().toString().padStart(2,'0');
-  $('#clockTime').textContent=h+':'+m;
-  $('#clockSec').textContent=s;
-  const opts={weekday:'long',month:'long',day:'numeric'};
-  $('#clockDate').textContent=now.toLocaleDateString('en-US',opts);
-}
-setInterval(tickClock,1000);
-tickClock();
-
-// ── UI Transitions ──
-function setMode(mode){
-  const cw=$('#clockWrap'),ct=$('#clockTime'),cd=$('#clockDate'),cs=$('#clockSec');
-  const fan=$('#cardFanWrap'),np=$('#npWrap');
-  if(mode==='hero'){
-    cw.className='clock-wrap hero';
-    ct.className='clock-time hero';
-    cd.className='clock-date hero';
-    cs.className='clock-seconds hero';
-    fan.className='card-fan-wrap hidden';
-    np.className='np-wrap hidden';
-  }else{
-    cw.className='clock-wrap compact';
-    ct.className='clock-time compact';
-    cd.className='clock-date compact';
-    cs.className='clock-seconds compact';
-    fan.className='card-fan-wrap visible';
-    np.className='np-wrap visible';
-  }
-}
-
-// ── Card Fan ──
-function renderFan(){
-  const fan=$('#cardFan');
-  fan.innerHTML='';
-  const arts=S.recentArts.slice(0,5);
-  arts.forEach((url,i)=>{
-    const div=document.createElement('div');
-    div.className='fan-card';
-    div.style.animationDelay=i*80+'ms';
-    const img=document.createElement('img');
-    img.src=url;
-    img.loading='lazy';
-    div.appendChild(img);
-    fan.appendChild(div);
+/* ═══ FAN ═══ */
+function renderFan(cards){
+  const el=$('#fan');el.innerHTML='';
+  const ci=cards.findIndex(c=>c.cur);if(ci<0)return;
+  cards.forEach((c,i)=>{
+    const p=i-ci;if(p<-2||p>2)return;
+    const d=document.createElement('div');
+    d.className='fan-card gone-'+(p<=0?'l':'r');
+    d.innerHTML=`<img src="${c.art}" alt=""><div class="fan-card-info"><div class="fan-card-title">${esc(c.name)}</div><div class="fan-card-artist">${esc(c.artist)}</div></div>`;
+    el.appendChild(d);
+    // Animate in
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      d.className='fan-card p'+p;
+    }));
   });
 }
 
-// ── Now Playing ──
-function renderNP(){
-  $('#npArt').src=S.albumArt||'';
-  $('#npTitle').textContent=S.title||'--';
-  $('#npArtist').textContent=S.artist||'--';
-  $('#npBar').style.width=(S.duration?S.progress/S.duration*100:0)+'%';
-  $('#npElapsed').textContent=fmt(S.progress);
-  $('#npDuration').textContent=fmt(S.duration);
-  updatePlayIcon();
+/* ═══ BAR ═══ */
+function renderBar(){
+  $('#bArt').src=S.art||'';$('#bTitle').textContent=S.title||'--';$('#bArtist').textContent=S.artist||'--';
+  playIcon();
 }
-
-function updatePlayIcon(){
-  const svg=S.playing
+function playIcon(){
+  $('#bPlay').innerHTML=S.playing
     ?'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
     :'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
-  $('#btnPlay').innerHTML=svg;
 }
 
-// ── BG Glow from album art ──
-function updateGlow(imgUrl){
-  if(!imgUrl){$('#bgGlow').classList.remove('active');return}
-  const el=$('#bgGlowInner');
-  el.style.background=`url(${imgUrl}) center/cover no-repeat`;
-  $('#bgGlow').classList.add('active');
+/* ═══ PROGRESS ═══ */
+let progRAF=null;
+function startProg(){
+  function f(){
+    if(S.playing){const e=Date.now()-S.pollT;S.prog=Math.min(S.pollP+e,S.dur)}
+    $('#prog').style.width=(S.dur?S.prog/S.dur*100:0)+'%';
+    progRAF=requestAnimationFrame(f);
+  }
+  if(!progRAF)f();
+}
+function stopProg(){if(progRAF){cancelAnimationFrame(progRAF);progRAF=null}}
+
+/* ═══ TRACK TRANSITION ═══ */
+async function transition(d){
+  const v=$('#veil');
+  v.classList.add('on');
+  await sleep(380);
+
+  S.tid=d.id;S.title=d.title;S.artist=d.artist;S.art=d.art;S.prog=d.prog;S.dur=d.dur;S.playing=d.playing;
+  S.pollT=Date.now();S.pollP=d.prog;
+
+  setBg(S.art);
+
+  // Fetch queue + recent in parallel
+  const [q,rc]=await Promise.all([api('/me/player/queue'),api('/me/player/recently-played?limit=5')]);
+  const cur={name:S.title,artist:S.artist,art:S.art,cur:true};
+  const right=(q?.queue||[]).slice(0,2).map(t=>({name:t.name,artist:(t.artists||[]).map(a=>a.name).join(', '),art:t.album?.images?.[0]?.url||'',cur:false}));
+  const left=(rc?.items||[]).slice(0,2).reverse().map(it=>({name:it.track.name,artist:(it.track.artists||[]).map(a=>a.name).join(', '),art:it.track.album?.images?.[0]?.url||'',cur:false}));
+  // Deduplicate by art url
+  const seen=new Set([S.art]);
+  const dedupe=arr=>arr.filter(c=>{if(seen.has(c.art))return false;seen.add(c.art);return true});
+  renderFan([...dedupe(left),cur,...dedupe(right)]);
+  renderBar();
+
+  // BPM
+  const bpm=await getBpm(S.tid);
+  startBeat(bpm);
+
+  await sleep(180);
+  v.classList.remove('on');
 }
 
-// ── Spotify Polling ──
-let pollTimer=null;
-let progressTimer=null;
-
-async function pollPlayback(){
+/* ═══ POLL ═══ */
+let pollId=null;
+async function poll(){
   const d=await api('/me/player/currently-playing');
-  if(d&&d.item){
-    const newTrack=d.item.id!==S.trackId;
-    S.trackId=d.item.id;
-    S.playing=d.is_playing;
-    S.progress=d.progress_ms||0;
-    S.duration=d.item.duration_ms||0;
-    S.title=d.item.name;
-    S.artist=(d.item.artists||[]).map(a=>a.name).join(', ');
-    const imgs=d.item.album?.images||[];
-    S.albumArt=imgs[0]?.url||'';
-
-    if(newTrack){
-      updateGlow(S.albumArt);
-      await fetchRecent();
+  if(d?.item){
+    const isNew=d.item.id!==S.tid;
+    S.playing=d.is_playing;S.pollT=Date.now();S.pollP=d.progress_ms||0;
+    if(isNew){
+      await transition({id:d.item.id,title:d.item.name,artist:(d.item.artists||[]).map(a=>a.name).join(', '),art:d.item.album?.images?.[0]?.url||'',prog:d.progress_ms||0,dur:d.item.duration_ms||0,playing:d.is_playing});
+      goPlaying();
+    }else{
+      S.prog=d.progress_ms||0;S.dur=d.item.duration_ms||0;
+      playIcon();
+      if(!S.playing)stopBeat();else if(!beatId&&S.bpm)startBeat(S.bpm);
     }
-
-    setMode('playing');
-    renderNP();
-    startProgressTick();
+    startProg();
   }else{
-    S.playing=false;S.trackId=null;
-    setMode('hero');
-    updateGlow(null);
-    stopProgressTick();
+    S.playing=false;S.tid=null;goIdle();stopBeat();stopProg();
   }
 }
 
-function startProgressTick(){
-  stopProgressTick();
-  if(!S.playing)return;
-  progressTimer=setInterval(()=>{
-    if(!S.playing)return;
-    S.progress=Math.min(S.progress+500,S.duration);
-    $('#npBar').style.width=(S.duration?S.progress/S.duration*100:0)+'%';
-    $('#npElapsed').textContent=fmt(S.progress);
-  },500);
+/* ═══ MODES ═══ */
+function goPlaying(){
+  $('#fan').classList.remove('off');$('#bar').classList.remove('off');
+  $('#clock').classList.remove('hero');
+  $('#clockToggle').style.display='';$('#discBtn').style.display='';
 }
-function stopProgressTick(){if(progressTimer){clearInterval(progressTimer);progressTimer=null}}
-
-async function fetchRecent(){
-  const d=await api('/me/player/recently-played?limit=10');
-  if(d&&d.items){
-    const seen=new Set();
-    const arts=[];
-    // Current album art first if available
-    if(S.albumArt){arts.push(S.albumArt);seen.add(S.albumArt)}
-    d.items.forEach(it=>{
-      const url=it.track?.album?.images?.[0]?.url;
-      if(url&&!seen.has(url)&&arts.length<5){arts.push(url);seen.add(url)}
-    });
-    S.recentArts=arts;
-    renderFan();
-  }
+function goIdle(){
+  $('#fan').classList.add('off');$('#bar').classList.add('off');
+  $('#clock').classList.add('hero');$('#clock').classList.remove('off');
+  S.clockOn=true;
+  $('#clockToggle').style.display='none';$('#discBtn').style.display='none';
+  $('#bgA').style.opacity='0';$('#bgB').style.opacity='0';
 }
 
-// ── Controls ──
-$('#btnPlay').addEventListener('click',async()=>{
-  if(S.playing){await apiPut('/me/player/pause');S.playing=false;stopProgressTick()}
-  else{await apiPut('/me/player/play');S.playing=true;startProgressTick()}
-  updatePlayIcon();
-});
-$('#btnNext').addEventListener('click',async()=>{await apiPost('/me/player/next');setTimeout(pollPlayback,400)});
-$('#btnPrev').addEventListener('click',async()=>{await apiPost('/me/player/previous');setTimeout(pollPlayback,400)});
-$('#disconnectBtn').addEventListener('click',()=>{clearTokens();showAuth()});
+/* ═══ CONTROLS ═══ */
+$('#bPlay').onclick=async()=>{
+  if(S.playing){await cmd('PUT','/me/player/pause');S.playing=false;stopBeat()}
+  else{await cmd('PUT','/me/player/play');S.playing=true;if(S.bpm)startBeat(S.bpm)}
+  S.pollT=Date.now();S.pollP=S.prog;playIcon();
+};
+$('#bNext').onclick=async()=>{await cmd('POST','/me/player/next');setTimeout(poll,500)};
+$('#bPrev').onclick=async()=>{await cmd('POST','/me/player/previous');setTimeout(poll,500)};
+$('#discBtn').onclick=()=>{clear();goAuth()};
 
-// ── Auth Flow ──
-function showAuth(){
-  clearInterval(pollTimer);stopProgressTick();
-  $('#auth-screen').classList.remove('hidden');
-  $('#main-view').classList.remove('active');
-}
-function showMain(){
-  $('#auth-screen').classList.add('hidden');
-  $('#main-view').classList.add('active');
-  pollPlayback();
-  pollTimer=setInterval(pollPlayback,3000);
-}
+/* ═══ AUTH FLOW ═══ */
+function goAuth(){if(pollId)clearInterval(pollId);stopBeat();stopProg();$('#auth').classList.remove('out');goIdle()}
+function goMain(){$('#auth').classList.add('out');poll();pollId=setInterval(poll,3500)}
+$('#authBtn').onclick=doAuth;
 
-$('#authBtn').addEventListener('click',startAuth);
+/* ═══ INIT ═══ */
+(async()=>{
+  const p=new URLSearchParams(location.search),code=p.get('code');
+  if(code){history.replaceState(null,'',location.pathname);if(await swap(code)){goMain();return}}
+  const t=tk();
+  if(t&&!exp()){goMain();return}
+  if(t&&exp()&&await refresh()){goMain();return}
+  goAuth();
+})();
 
-// ── Init ──
-async function init(){
-  // Handle callback
-  const params=new URLSearchParams(location.search);
-  const code=params.get('code');
-  if(code){
-    history.replaceState(null,'',location.pathname);
-    const ok=await exchangeCode(code);
-    if(ok){showMain();return}
-  }
-  // Check existing token
-  const t=getToken();
-  if(t&&!isExpired()){showMain();return}
-  if(t&&isExpired()){
-    const ok=await refreshToken();
-    if(ok){showMain();return}
-  }
-  showAuth();
-}
-
-init();
-
-// ── PWA SW ──
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
-}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
