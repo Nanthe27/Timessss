@@ -160,6 +160,53 @@ input[type="text"]:focus { border-color: rgba(29,185,84,.35); }
 
 /* ===== LOADING ===== */
 #loading-screen { gap: 1.2rem; }
+
+/* ===== NOW PLAYING / LIVE ===== */
+.btn-live {
+  background: transparent; color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.btn-live:hover { background: rgba(29,185,84,.1); transform: translateY(-1px); }
+
+.live-dot {
+  display: inline-block; width: 8px; height: 8px;
+  background: var(--accent); border-radius: 50%;
+  animation: pulse 1.5s ease infinite;
+  margin-right: .2rem;
+}
+
+.or-divider {
+  display: flex; align-items: center; gap: .75rem;
+  width: 100%; margin: 1rem 0;
+}
+.or-divider::before, .or-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.or-divider span {
+  font-size: .55rem; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap;
+}
+
+.btn-manual { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+.btn-manual:hover { background: var(--card); transform: translateY(-1px); }
+
+/* Live badge on card */
+.live-badge {
+  position: absolute; top: 10px; left: 10px; z-index: 3;
+  display: flex; align-items: center; gap: .35rem;
+  background: rgba(0,0,0,.65); backdrop-filter: blur(6px);
+  border-radius: 999px; padding: .3rem .65rem;
+  font-size: .55rem; letter-spacing: .1em; text-transform: uppercase;
+  color: #ff4444; border: 1px solid rgba(255,68,68,.25);
+}
+.live-badge .live-dot { background: #ff4444; width: 6px; height: 6px; margin-right: 0; }
+
+/* Playing state badge swap */
+.art-badge.is-live { display: none; }
+
+.no-playback-msg {
+  font-size: .68rem; color: var(--muted); margin-top: .5rem; line-height: 1.6;
+}
 .loader-ring {
   width: 34px; height: 34px;
   border: 2px solid var(--border); border-top-color: var(--accent);
@@ -525,13 +572,17 @@ input[type="text"]:focus { border-color: rgba(29,185,84,.35); }
     <div style="width:24px;height:24px;border-radius:50%;background:var(--card2)"></div>
     <span>Connected</span>
   </div>
-  <h2 class="input-headline">Enter a <em>track</em></h2>
-  <p class="input-sub">Paste a Spotify track ID or full URL</p>
+  <h2 class="input-headline">Your <em>music,</em> live</h2>
+  <p class="input-sub">Sync with what you're playing on Spotify</p>
+  <button class="btn-gen btn-live" onclick="nowPlaying()">
+    <span class="live-dot"></span> Now Playing
+  </button>
+  <div class="or-divider"><span>or enter manually</span></div>
   <div class="field-wrap">
     <label class="field-label">Track ID or URL</label>
     <input type="text" id="track-input" placeholder="4uLU6hMCjMI75M1A2tKUQC" autocomplete="off" spellcheck="false" />
   </div>
-  <button class="btn-gen" onclick="generate()">Generate Card</button>
+  <button class="btn-gen btn-manual" onclick="generate()">Generate Card</button>
   <p class="error-msg" id="error-msg">Could not load track. Check the ID and try again.</p>
   <p class="input-hint">In Spotify: Share &rarr; Copy Link. The ID is after <code>track/</code>.</p>
   <button class="logout-btn" onclick="logout()">Disconnect</button>
@@ -564,7 +615,7 @@ input[type="text"]:focus { border-color: rgba(29,185,84,.35); }
         </div>
         <div class="art-progress">
           <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-fill"></div></div>
-          <div class="prog-times"><span>0:00</span><span id="time-total">0:00</span></div>
+          <div class="prog-times"><span id="time-current">0:00</span><span id="time-total">0:00</span></div>
         </div>
       </div>
 
@@ -663,7 +714,13 @@ input[type="text"]:focus { border-color: rgba(29,185,84,.35); }
 <script>
 const CLIENT_ID    = '2dba0d8b0d3540c79971f906ab1e3589';
 const REDIRECT_URI = 'https://nanthe27.github.io/Timessss/';
-const SCOPES       = 'user-read-private';
+const SCOPES       = 'user-read-private user-read-currently-playing user-read-playback-state';
+
+let pollTimer = null;
+let progTimer = null;
+let liveMode = false;
+let currentTrackId = null;
+let playbackState = { progress: 0, duration: 0, playing: false, stamp: 0 };
 
 // PKCE
 function rndBytes(n) { return crypto.getRandomValues(new Uint8Array(n)); }
@@ -714,11 +771,12 @@ async function api(path) {
   const token = localStorage.getItem('at');
   if (!token) { logout(); throw new Error('no token'); }
   const r = await fetch('https://api.spotify.com/v1'+path, { headers:{Authorization:'Bearer '+token} });
+  if (r.status === 204) return null; // nothing playing
   if (!r.ok) throw new Error(r.status);
   return r.json();
 }
 
-function logout() { localStorage.clear(); show('auth'); }
+function logout() { stopLive(); localStorage.clear(); show('auth'); }
 
 function msToTime(ms) {
   const m = Math.floor(ms/60000);
@@ -748,6 +806,7 @@ async function loadUser() {
   } catch {}
 }
 
+// ===== MANUAL MODE =====
 async function generate() {
   const raw = document.getElementById('track-input').value.trim();
   const errEl = document.getElementById('error-msg');
@@ -759,6 +818,8 @@ async function generate() {
   id = id.split('?')[0];
   show('loading');
   try {
+    stopLive();
+    liveMode = false;
     const track  = await api('/tracks/'+id);
     const artist = await api('/artists/'+track.artists[0].id);
     render(track, artist);
@@ -769,24 +830,124 @@ async function generate() {
   }
 }
 
+// ===== LIVE MODE =====
+async function nowPlaying() {
+  const errEl = document.getElementById('error-msg');
+  errEl.style.display = 'none';
+  show('loading');
+  try {
+    const pb = await api('/me/player/currently-playing');
+    if (!pb || !pb.item) {
+      errEl.textContent = 'Nothing is playing right now. Start a track in Spotify and try again.';
+      errEl.style.display = 'block';
+      show('input');
+      return;
+    }
+    liveMode = true;
+    currentTrackId = pb.item.id;
+    const artist = await api('/artists/'+pb.item.artists[0].id);
+
+    // Set initial playback state
+    playbackState = {
+      progress: pb.progress_ms || 0,
+      duration: pb.item.duration_ms,
+      playing: pb.is_playing,
+      stamp: Date.now()
+    };
+
+    render(pb.item, artist);
+    updateProgress();
+    show('card');
+    startLive();
+  } catch(e) {
+    errEl.textContent = 'Could not fetch playback. Make sure Spotify is open.';
+    errEl.style.display = 'block';
+    show('input');
+  }
+}
+
+function startLive() {
+  stopLive();
+  // Poll every 3s
+  pollTimer = setInterval(pollPlayback, 3000);
+  // Smooth progress every 250ms
+  progTimer = setInterval(updateProgress, 250);
+}
+
+function stopLive() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  if (progTimer) { clearInterval(progTimer); progTimer = null; }
+}
+
+async function pollPlayback() {
+  try {
+    const pb = await api('/me/player/currently-playing');
+    if (!pb || !pb.item) return;
+
+    // Track changed?
+    if (pb.item.id !== currentTrackId) {
+      currentTrackId = pb.item.id;
+      const artist = await api('/artists/'+pb.item.artists[0].id);
+      render(pb.item, artist);
+    }
+
+    // Update playback state
+    playbackState = {
+      progress: pb.progress_ms || 0,
+      duration: pb.item.duration_ms,
+      playing: pb.is_playing,
+      stamp: Date.now()
+    };
+    updateProgress();
+  } catch {}
+}
+
+function updateProgress() {
+  const { progress, duration, playing, stamp } = playbackState;
+  if (!duration) return;
+
+  // Interpolate current position
+  let current = progress;
+  if (playing) current += (Date.now() - stamp);
+  current = Math.min(current, duration);
+
+  const pct = (current / duration) * 100;
+  const fill = document.getElementById('prog-fill');
+  const timeEl = document.getElementById('time-current');
+  const totalEl = document.getElementById('time-total');
+  if (fill) {
+    fill.style.transition = 'width .3s linear';
+    fill.style.width = pct + '%';
+  }
+  if (timeEl) timeEl.textContent = msToTime(current);
+  if (totalEl) totalEl.textContent = msToTime(duration);
+}
+
+// ===== RENDER =====
 function render(track, artist) {
   const artUrl = track.album.images?.[0]?.url;
 
   // Art
   const artEl = document.getElementById('card-art');
   const badge = artEl.querySelector('.art-badge').outerHTML;
-  const prog  = artEl.querySelector('.art-progress').outerHTML;
+  const liveBadge = liveMode ? `<div class="live-badge"><span class="live-dot"></span>Live</div>` : '';
   artEl.innerHTML = (artUrl ? `<img src="${artUrl}" alt="Album art" />` : `<div class="card-art-placeholder"><div class="vinyl"><div class="vinyl-center"></div></div></div>`)
-    + badge + prog;
+    + (liveMode ? '' : badge) + liveBadge
+    + `<div class="art-progress">
+        <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-fill"></div></div>
+        <div class="prog-times"><span id="time-current">0:00</span><span id="time-total">0:00</span></div>
+      </div>`;
 
   // Dynamic bg glow
   document.getElementById('bg-glow').style.background =
     'radial-gradient(circle, rgba(29,185,84,0.07) 0%, transparent 65%)';
 
-  // Progress
-  setTimeout(() => {
-    document.getElementById('prog-fill').style.width = (Math.random()*55+10)+'%';
-  }, 300);
+  // Progress (manual mode: fake it / live mode: updateProgress handles it)
+  if (!liveMode) {
+    setTimeout(() => {
+      document.getElementById('prog-fill').style.width = (Math.random()*55+10)+'%';
+    }, 300);
+  }
   document.getElementById('time-total').textContent = msToTime(track.duration_ms);
 
   // Track info
@@ -835,7 +996,7 @@ function render(track, artist) {
   }
 }
 
-function goBack() { show('input'); }
+function goBack() { stopLive(); liveMode = false; currentTrackId = null; show('input'); }
 
 // INIT
 (async () => {
