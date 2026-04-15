@@ -85,56 +85,68 @@ html,body{height:100%;overflow:hidden;background:#000;color:var(--text);font-fam
 .clock-time.sm .d-slot,.clock-time.sm .d-sep{font-size:min(12vw,60px)}
 
 /* ── Card Fan ── */
-.fan{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:5;opacity:1;transition:opacity .5s}
+.fan{position:fixed;top:0;left:0;right:0;bottom:140px;display:flex;align-items:center;justify-content:center;z-index:5;opacity:1;transition:opacity .5s}
 .fan.off{opacity:0;pointer-events:none}
 .fan-card{
   position:absolute;
-  width:min(40vw,190px);aspect-ratio:3/4;
-  border-radius:14px;overflow:hidden;background:#111;
-  box-shadow:0 10px 40px rgba(0,0,0,.55);
+  width:min(38vw,200px);aspect-ratio:1/1;
+  border-radius:22px;overflow:hidden;background:#111;
+  box-shadow:0 20px 60px rgba(0,0,0,.7);
   transition:transform .65s cubic-bezier(.4,0,.12,1),opacity .45s ease;
   will-change:transform,opacity;
 }
 .fan-card img{width:100%;height:100%;object-fit:cover;display:block}
-.fan-card-info{position:absolute;bottom:0;left:0;right:0;padding:24px 10px 10px;background:linear-gradient(transparent,rgba(0,0,0,.82))}
-.fan-card-title{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fan-card-artist{font-size:9px;font-family:var(--font-label);color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fan-card.p-2{transform:rotate(-15deg) translateX(-125%) scale(.7);opacity:.45;z-index:1}
-.fan-card.p-1{transform:rotate(-7deg) translateX(-60%) scale(.85);opacity:.75;z-index:2}
-.fan-card.p0{transform:rotate(0) translateX(0) scale(1);opacity:1;z-index:3}
-.fan-card.p1{transform:rotate(7deg) translateX(60%) scale(.85);opacity:.75;z-index:2}
-.fan-card.p2{transform:rotate(15deg) translateX(125%) scale(.7);opacity:.45;z-index:1}
-.fan-card.gone-l{transform:rotate(-20deg) translateX(-200%) scale(.5);opacity:0}
-.fan-card.gone-r{transform:rotate(20deg) translateX(200%) scale(.5);opacity:0}
+.fan-card-info{display:none}
+.fan-card.p-2{transform:perspective(900px) rotateY(35deg) translateX(-170%) scale(.72);opacity:.35;z-index:1}
+.fan-card.p-1{transform:perspective(900px) rotateY(20deg) translateX(-80%) scale(.86);opacity:.7;z-index:2}
+.fan-card.p0{transform:perspective(900px) rotateY(0deg) translateX(0) scale(1);opacity:1;z-index:3}
+.fan-card.p1{transform:perspective(900px) rotateY(-20deg) translateX(80%) scale(.86);opacity:.7;z-index:2}
+.fan-card.p2{transform:perspective(900px) rotateY(-35deg) translateX(170%) scale(.72);opacity:.35;z-index:1}
+.fan-card.gone-l{transform:perspective(900px) rotateY(45deg) translateX(-260%) scale(.5);opacity:0}
+.fan-card.gone-r{transform:perspective(900px) rotateY(-45deg) translateX(260%) scale(.5);opacity:0}
 
-/* ── Floating Controls ── */
+/* ── Fan Label ── */
+.fan-label{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(100px + var(--safe-bottom));
+  z-index:10;text-align:center;
+  opacity:1;transition:opacity .5s ease;
+  pointer-events:none;
+}
+.fan-label.off{opacity:0}
+.fan-label-name{font-size:15px;font-weight:600;color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.6)}
+.fan-label-artist{font-size:12px;font-family:var(--font-label);color:var(--text2);margin-top:3px}
+
+/* ── Bottom Control Bar ── */
 .ctrl-wrap{
-  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
-  z-index:20;display:flex;flex-direction:column;align-items:center;gap:10px;
+  position:fixed;left:50%;bottom:calc(22px + var(--safe-bottom));
+  transform:translateX(-50%);
+  z-index:20;display:flex;flex-direction:column;align-items:center;gap:8px;
+  width:min(92vw,700px);
   transition:opacity var(--hide-speed) ease,transform var(--hide-speed) ease;
 }
-.ctrl-wrap.off{opacity:0;transform:translate(-50%,-50%) scale(.95);pointer-events:none}
+.ctrl-wrap.off{opacity:0;transform:translateX(-50%) translateY(16px);pointer-events:none}
 .ctrl-wrap.gone{display:none}
 
 .ctrl-card{
-  background:rgba(18,18,18,.65);backdrop-filter:blur(50px);-webkit-backdrop-filter:blur(50px);
-  border:1px solid rgba(255,255,255,.07);border-radius:20px;
-  padding:14px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;
-  min-width:220px;
+  background:rgba(22,22,22,.75);backdrop-filter:blur(60px);-webkit-backdrop-filter:blur(60px);
+  border:1px solid rgba(255,255,255,.1);border-radius:50px;
+  padding:10px 18px;display:flex;flex-direction:row;align-items:center;gap:14px;
+  width:100%;
 }
-.ctrl-track{display:flex;align-items:center;gap:10px;width:100%}
-.ctrl-art{width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#222}
+.ctrl-btns{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.ctrl-track{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.ctrl-art{width:40px;height:40px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#222}
 .ctrl-art img{width:100%;height:100%;object-fit:cover;display:block}
 .ctrl-info{flex:1;min-width:0}
 .ctrl-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ctrl-artist{font-size:11px;font-family:var(--font-label);color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ctrl-btns{display:flex;align-items:center;gap:8px}
 .c-btn{background:none;border:none;color:var(--text);cursor:pointer;padding:6px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .1s}
 .c-btn:active{transform:scale(.85)}
-.c-btn.sm svg{width:22px;height:22px}
-.c-btn.lg svg{width:32px;height:32px}
-.ctrl-prog{width:100%;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
-.ctrl-prog-fill{height:100%;background:var(--text);width:0;transition:width .35s linear}
+.c-btn.sm svg{width:20px;height:20px}
+.c-btn.lg svg{width:30px;height:30px}
+.ctrl-prog{width:100%;height:2px;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden}
+.ctrl-prog-fill{height:100%;background:rgba(255,255,255,.8);width:0;transition:width .35s linear}
 
 /* ── Top Buttons (auto-hide) ── */
 .ui-fade{transition:opacity var(--hide-speed) ease;pointer-events:auto}
@@ -149,16 +161,18 @@ html,body{height:100%;overflow:hidden;background:#000;color:var(--text);font-fam
 
 /* ── Responsive ── */
 @media (max-width:380px){
-  .fan-card{width:min(36vw,150px)}
+  .fan-card{width:min(36vw,140px)}
   .clock-time.big .d-slot,.clock-time.big .d-sep{font-size:min(15vw,80px)}
   .clock-time.sm .d-slot,.clock-time.sm .d-sep{font-size:10vw}
+  .ctrl-wrap{width:94vw}
 }
 @media (orientation:landscape) and (max-height:500px){
-  .fan-card{width:min(20vh,150px)}
+  .fan-card{width:min(20vh,130px)}
+  .fan-label{bottom:calc(80px + var(--safe-bottom));font-size:12px}
   .clock-time.sm .d-slot,.clock-time.sm .d-sep{font-size:min(10vh,48px)}
   .clock-time.big .d-slot,.clock-time.big .d-sep{font-size:min(16vh,80px)}
 }
-@media (min-width:768px){.fan-card{width:min(22vw,210px)}}
+@media (min-width:768px){.fan-card{width:min(20vw,240px)}}
 </style>
 </head>
 <body>
@@ -197,18 +211,24 @@ html,body{height:100%;overflow:hidden;background:#000;color:var(--text);font-fam
   <!-- Fan -->
   <div class="fan off" id="fan"></div>
 
-  <!-- Floating Controls -->
+  <!-- Fan Label -->
+  <div class="fan-label off" id="fanLabel">
+    <div class="fan-label-name" id="fanLabelName"></div>
+    <div class="fan-label-artist" id="fanLabelArtist"></div>
+  </div>
+
+  <!-- Bottom Control Bar -->
   <div class="ctrl-wrap gone" id="ctrl">
+    <div class="ctrl-prog"><div class="ctrl-prog-fill" id="prog"></div></div>
     <div class="ctrl-card">
-      <div class="ctrl-track">
-        <div class="ctrl-art"><img id="cArt" src="" alt=""></div>
-        <div class="ctrl-info"><div class="ctrl-title" id="cTitle">--</div><div class="ctrl-artist" id="cArtist">--</div></div>
-      </div>
-      <div class="ctrl-prog"><div class="ctrl-prog-fill" id="prog"></div></div>
       <div class="ctrl-btns">
         <button class="c-btn sm" id="bPrev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
         <button class="c-btn lg" id="bPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
         <button class="c-btn sm" id="bNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+      </div>
+      <div class="ctrl-track">
+        <div class="ctrl-art"><img id="cArt" src="" alt=""></div>
+        <div class="ctrl-info"><div class="ctrl-title" id="cTitle">--</div><div class="ctrl-artist" id="cArtist">--</div></div>
       </div>
     </div>
   </div>
@@ -352,6 +372,8 @@ function renderCtrl(){
   $('#cArt').src=S.art||'';
   $('#cTitle').textContent=S.title||'--';
   $('#cArtist').textContent=S.artist||'--';
+  $('#fanLabelName').textContent=S.title||'';
+  $('#fanLabelArtist').textContent=S.artist||'';
   playIcon();
 }
 function playIcon(){
@@ -417,6 +439,7 @@ function goPlaying(){
   S.mode='playing';
   $('#fan').classList.remove('off');
   $('#ctrl').classList.remove('gone');
+  $('#fanLabel').classList.remove('off');
   $('#clock').classList.remove('hero');
   $('#clockTime').classList.remove('big');$('#clockTime').classList.add('sm');
   $('#clockToggle').style.display='';$('#beatToggle').style.display='';$('#discBtn').style.display='';
@@ -426,6 +449,7 @@ function goIdle(){
   S.mode='idle';
   $('#fan').classList.add('off');
   $('#ctrl').classList.add('gone');$('#ctrl').classList.add('off');
+  $('#fanLabel').classList.add('off');
   $('#clock').classList.add('hero');$('#clock').classList.remove('off');
   $('#clockTime').classList.add('big');$('#clockTime').classList.remove('sm');
   S.clockOn=true;
