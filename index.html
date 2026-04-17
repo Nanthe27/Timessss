@@ -5,413 +5,670 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#000">
 <title>Timessss</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23000'/%3E%3Ccircle cx='50' cy='50' r='34' fill='none' stroke='%23fff' stroke-width='2.5'/%3E%3Cline x1='50' y1='50' x2='50' y2='22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/%3E%3Cline x1='50' y1='50' x2='63' y2='56' stroke='%23fff' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='50' r='2.5' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Rubik:wght@300;400;500;700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Rubik:wght@300;400&family=Ubuntu:wght@300;400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --text:#fff;--text2:rgba(255,255,255,.55);
-  --font-ui:'Quicksand',sans-serif;
-  --font-label:'Ubuntu',sans-serif;
-  --font-num:'Rubik',sans-serif;
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bottom:env(safe-area-inset-bottom,0px);
-  --hide-speed:.5s;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --dim:#888;
+  --border:rgba(255,255,255,.08);
+  --card:rgba(12,12,12,.88);
+  --fn:'Quicksand',sans-serif;
+  --fm:'Ubuntu',sans-serif;
+  --fd:'Rubik',sans-serif;
+  --topH:52px;
+  --botH:76px;
+  --sideW:268px;
+  --rightW:252px;
+  --vsize:min(44vw,390px);
 }
-html,body{height:100%;overflow:hidden;background:#000;color:var(--text);font-family:var(--font-ui);-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
-#app{height:100%;width:100%;position:relative;overflow:hidden}
+html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--fn);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#app{height:100%;position:relative;overflow:hidden}
 
 /* ── BG ── */
 .bg{position:fixed;inset:0;z-index:0}
-.bg-layer{position:absolute;inset:-60px;background-size:cover;background-position:center;filter:blur(90px) saturate(1.5) brightness(.65);transition:opacity 1.4s ease;will-change:opacity}
-.bg-layer.a{opacity:1}.bg-layer.b{opacity:0}
-.bg-overlay{position:absolute;inset:0;background:rgba(0,0,0,.3)}
-.bg-beat{position:absolute;inset:-60px;background:radial-gradient(ellipse at center,rgba(255,255,255,.06) 0%,transparent 70%);opacity:0;will-change:opacity;pointer-events:none}
+.bgl{position:absolute;inset:-80px;background-size:cover;background-position:center;filter:blur(110px) saturate(1.8) brightness(.38);transition:opacity 1.8s ease;will-change:opacity}
+.bgl.a{opacity:1}.bgl.b{opacity:0}
+.bgo{position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,0,0,.6) 0%,rgba(0,0,0,.2) 50%,rgba(0,0,0,.7) 100%)}
+.bgp{position:absolute;inset:-80px;background:radial-gradient(ellipse at 50% 50%,rgba(255,255,255,.055) 0%,transparent 65%);opacity:0;pointer-events:none;will-change:opacity}
 
 /* ── Veil ── */
-.veil{position:fixed;inset:0;background:#000;opacity:0;z-index:50;pointer-events:none;transition:opacity .45s ease}
-.veil.on{opacity:.65}
+.veil{position:fixed;inset:0;background:#000;opacity:0;z-index:300;pointer-events:none;transition:opacity .4s}
+.veil.on{opacity:.72}
 
-/* ── Auth ── */
-#auth{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:#000;transition:opacity .6s,transform .6s}
-#auth.out{opacity:0;transform:scale(.95);pointer-events:none}
-.auth-logo{width:44px;height:44px;opacity:.65}
-.auth-title{font-size:26px;font-weight:600;letter-spacing:-.5px}
-.auth-sub{font-family:var(--font-label);font-size:13px;color:var(--text2);max-width:240px;text-align:center;line-height:1.5}
-.auth-btn{display:inline-flex;align-items:center;gap:10px;padding:13px 30px;border-radius:50px;border:none;background:#fff;color:#000;font-family:var(--font-ui);font-size:14px;font-weight:600;cursor:pointer;transition:transform .2s}
-.auth-btn:active{transform:scale(.95)}
-.auth-btn svg{width:20px;height:20px}
-
-/* ── Clock ── */
-.clock{
-  position:fixed;top:calc(16px + var(--safe-top));left:0;right:0;
-  display:flex;flex-direction:column;align-items:center;z-index:10;
-  pointer-events:none;transition:opacity .5s ease,transform .5s ease;
+/* ═══════════════════ AUTH ═══════════════════ */
+#auth{
+  position:fixed;inset:0;z-index:200;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+  background:#000;transition:opacity .5s,transform .5s;
 }
-.clock.off{opacity:0;transform:translateY(-16px)}
-.clock.hero{top:50%;transform:translateY(-50%)}
-.clock.hero.off{opacity:0;transform:translateY(calc(-50% - 16px))}
+#auth.out{opacity:0;transform:scale(.96);pointer-events:none}
 
-.clock-time{
+/* Vinyl spinner on auth */
+.av{
+  width:96px;height:96px;border-radius:50%;
+  background:repeating-radial-gradient(circle at 50% 50%,#1c1c1c 0px,#0d0d0d 1px,#181818 2px,#0d0d0d 3px);
+  position:relative;box-shadow:0 10px 40px rgba(0,0,0,.9);
+  animation:vspin 3.8s linear infinite;
+}
+.av::before{content:'';position:absolute;inset:28%;border-radius:50%;background:radial-gradient(#2a2a2a,#111)}
+.av::after{content:'';position:absolute;inset:48%;border-radius:50%;background:radial-gradient(#bbb,#666)}
+.at{font-size:28px;font-weight:700;letter-spacing:-.4px}
+.as{font-family:var(--fm);font-size:13px;color:var(--dim);max-width:210px;text-align:center;line-height:1.65}
+#authBtn{
+  display:inline-flex;align-items:center;gap:10px;padding:13px 30px;
+  border-radius:50px;border:none;background:#1DB954;color:#000;
+  font-family:var(--fn);font-size:14px;font-weight:700;cursor:pointer;
+  transition:transform .15s,filter .15s;
+}
+#authBtn:active{transform:scale(.94);filter:brightness(.9)}
+#authBtn svg{width:20px;height:20px}
+
+/* ═══════════════════ IDLE CLOCK ═══════════════════ */
+#idle{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  pointer-events:none;transition:opacity .5s;
+}
+#idle.off{opacity:0}
+.ct{display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:300;line-height:1;text-shadow:0 2px 28px rgba(0,0,0,.4)}
+.ct.big .ds,.ct.big .sep{font-size:min(18vw,116px)}
+.cd{font-family:var(--fm);font-size:13px;font-weight:300;color:var(--dim);margin-top:10px;letter-spacing:.5px}
+
+/* Digit slots — NO overflow:hidden (causes black paint artifacts) */
+.ds{display:inline-block;position:relative;text-align:center;height:1.1em;width:.62em}
+.sep{width:.3em;text-align:center;opacity:.35}
+.ds span{display:block;position:absolute;left:0;right:0;transition:transform .38s cubic-bezier(.4,0,.08,1),opacity .3s ease}
+.ds span.cur{transform:translateY(0);opacity:1}
+.ds span.out{transform:translateY(-100%);opacity:0}
+.ds span.nxt{transform:translateY(100%);opacity:0}
+
+/* ═══════════════════ PLAYING LAYOUT ═══════════════════ */
+#play{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transition:opacity .5s;
+}
+#play.on{opacity:1;pointer-events:auto}
+
+/* TOP BAR */
+#top{
+  height:var(--topH);padding-top:var(--safe-t);
+  display:flex;align-items:center;padding:0 18px;
+  padding-top:var(--safe-t);
+  background:rgba(5,5,5,.82);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border-bottom:1px solid var(--border);flex-shrink:0;z-index:20;position:relative;
+  gap:14px;
+}
+.tbrand{font-size:15px;font-weight:700;letter-spacing:-.2px;color:#fff;flex-shrink:0}
+.tclk{
+  flex:1;text-align:center;
+  font-family:var(--fd);font-size:19px;font-weight:300;
+  opacity:.8;letter-spacing:.5px;
+}
+.tact{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.tbt{
+  background:rgba(255,255,255,.07);border:1px solid var(--border);
+  color:rgba(255,255,255,.6);cursor:pointer;
+  border-radius:50%;width:32px;height:32px;
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-num);font-weight:300;line-height:1;
-  text-shadow:0 2px 24px rgba(0,0,0,.6);
+  transition:background .18s;flex-shrink:0;
 }
-.clock-date{font-family:var(--font-label);font-size:min(3.2vw,13px);font-weight:300;color:var(--text2);margin-top:6px;letter-spacing:.4px;text-shadow:0 1px 10px rgba(0,0,0,.5)}
-
-/* Digit slots */
-.d-slot{
-  display:inline-block;position:relative;overflow:hidden;text-align:center;
-  height:1.1em;
+.tbt svg{width:15px;height:15px;display:block}
+.tbt:active{background:rgba(255,255,255,.14)}
+#discBtn{
+  border-radius:50px;padding:0 14px;width:auto;
+  font-family:var(--fm);font-size:11px;white-space:nowrap;
 }
-/* Fixed width: all digits same column width */
-.d-slot{width:.62em}
-.d-sep{width:.35em;text-align:center;opacity:.5}
-.d-slot span{
-  display:block;position:absolute;left:0;right:0;
-  transition:transform .45s cubic-bezier(.4,0,.08,1),opacity .45s ease;
+.beat-off #beatBtn{opacity:.25}
+
+/* MAIN 3-PANEL */
+#main{
+  flex:1;min-height:0;
+  display:grid;
+  grid-template-columns:var(--sideW) 1fr var(--rightW);
 }
-.d-slot span.cur{transform:translateY(0);opacity:1}
-.d-slot span.out{transform:translateY(-120%);opacity:0}
-.d-slot span.wait{transform:translateY(120%);opacity:0}
 
-/* Size variations */
-.clock-time.big .d-slot,.clock-time.big .d-sep{font-size:min(18vw,110px)}
-.clock-time.sm .d-slot,.clock-time.sm .d-sep{font-size:min(12vw,60px)}
-
-/* ── Card Fan ── */
-.fan{position:fixed;top:0;left:0;right:0;bottom:140px;display:flex;align-items:center;justify-content:center;z-index:5;opacity:1;transition:opacity .5s}
-.fan.off{opacity:0;pointer-events:none}
-.fan-card{
-  position:absolute;
-  width:min(38vw,200px);aspect-ratio:1/1;
-  border-radius:22px;overflow:hidden;background:#111;
-  box-shadow:0 20px 60px rgba(0,0,0,.7);
-  transition:transform .65s cubic-bezier(.4,0,.12,1),opacity .45s ease;
-  will-change:transform,opacity;
+/* ── LEFT SIDEBAR ── */
+#side{
+  background:rgba(5,5,5,.9);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
 }
-.fan-card img{width:100%;height:100%;object-fit:cover;display:block}
-.fan-card-info{display:none}
-.fan-card.p-2{transform:perspective(900px) rotateY(35deg) translateX(-170%) scale(.72);opacity:.35;z-index:1}
-.fan-card.p-1{transform:perspective(900px) rotateY(20deg) translateX(-80%) scale(.86);opacity:.7;z-index:2}
-.fan-card.p0{transform:perspective(900px) rotateY(0deg) translateX(0) scale(1);opacity:1;z-index:3}
-.fan-card.p1{transform:perspective(900px) rotateY(-20deg) translateX(80%) scale(.86);opacity:.7;z-index:2}
-.fan-card.p2{transform:perspective(900px) rotateY(-35deg) translateX(170%) scale(.72);opacity:.35;z-index:1}
-.fan-card.gone-l{transform:perspective(900px) rotateY(45deg) translateX(-260%) scale(.5);opacity:0}
-.fan-card.gone-r{transform:perspective(900px) rotateY(-45deg) translateX(260%) scale(.5);opacity:0}
-
-/* ── Fan Label ── */
-.fan-label{
-  position:fixed;left:50%;transform:translateX(-50%);
-  bottom:calc(100px + var(--safe-bottom));
-  z-index:10;text-align:center;
-  opacity:1;transition:opacity .5s ease;
-  pointer-events:none;
+.sideh{
+  padding:16px 18px 12px;
+  font-size:9.5px;font-weight:700;letter-spacing:1.6px;color:rgba(255,255,255,.22);
+  text-transform:uppercase;flex-shrink:0;
+  border-bottom:1px solid var(--border);
 }
-.fan-label.off{opacity:0}
-.fan-label-name{font-size:15px;font-weight:600;color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.6)}
-.fan-label-artist{font-size:12px;font-family:var(--font-label);color:var(--text2);margin-top:3px}
+#tracks{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.09) transparent;
+}
+#tracks::-webkit-scrollbar{width:3px}
+#tracks::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
 
-/* ── Bottom Control Bar ── */
-.ctrl-wrap{
-  position:fixed;left:50%;bottom:calc(22px + var(--safe-bottom));
+.ti{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 16px;cursor:default;
+  transition:background .15s;
+  border-bottom:1px solid rgba(255,255,255,.025);
+  position:relative;
+}
+.ti:hover{background:rgba(255,255,255,.04)}
+.ti.active{background:rgba(255,255,255,.055)}
+.ti.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:#c0392b;border-radius:0 2px 2px 0}
+.tinum{font-family:var(--fd);font-size:10.5px;color:rgba(255,255,255,.2);min-width:18px;text-align:right;flex-shrink:0}
+.ti.active .tinum{display:none}
+/* animated bars for active */
+.tibars{display:none;align-items:flex-end;gap:1.5px;height:13px;min-width:18px;flex-shrink:0}
+.ti.active .tibars{display:flex}
+.tib{width:2.5px;background:#c0392b;border-radius:1px;animation:tiba .55s ease-in-out infinite alternate}
+.tib:nth-child(1){height:5px;animation-delay:0s}
+.tib:nth-child(2){height:9px;animation-delay:.18s}
+.tib:nth-child(3){height:6px;animation-delay:.36s}
+#app:not(.playing) .tib{animation-play-state:paused}
+@keyframes tiba{from{transform:scaleY(.3)}to{transform:scaleY(1)}}
+
+.tiart{width:34px;height:34px;border-radius:5px;overflow:hidden;flex-shrink:0;background:#1a1a1a}
+.tiart img{width:100%;height:100%;object-fit:cover;display:block}
+.tiinfo{flex:1;min-width:0}
+.titl{font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tiar{font-size:10px;font-family:var(--fm);color:var(--dim);margin-top:1.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tidur{font-size:9.5px;font-family:var(--fd);color:rgba(255,255,255,.2);flex-shrink:0;margin-left:2px}
+
+/* ── CENTER VINYL ── */
+#vcenter{
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+#vwrap{position:relative;width:var(--vsize);height:var(--vsize)}
+
+#vrec{
+  width:100%;height:100%;border-radius:50%;
+  position:relative;
+  animation:vspin 3.6s linear infinite;
+  animation-play-state:paused;
+  will-change:transform;
+  filter:drop-shadow(0 24px 64px rgba(0,0,0,.9));
+}
+#app.playing #vrec{animation-play-state:running}
+
+.vdisc{
+  position:absolute;inset:0;border-radius:50%;
+  background:repeating-radial-gradient(circle at 50% 50%,
+    #101010 0px,#090909 1px,#151515 2px,#090909 3px,#111 5px
+  );
+}
+.vdisc::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(
+    rgba(255,255,255,.035) 0deg,transparent 50deg,
+    rgba(255,255,255,.02) 110deg,transparent 160deg,
+    rgba(255,255,255,.03) 220deg,transparent 270deg,
+    rgba(255,255,255,.035) 320deg,transparent 360deg
+  );
+}
+.vlabel{
+  position:absolute;width:33%;height:33%;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;overflow:hidden;background:#1e1e1e;z-index:2;
+}
+.vlabel img{width:100%;height:100%;object-fit:cover;display:block}
+.vpin{
+  position:absolute;width:9px;height:9px;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  border-radius:50%;background:radial-gradient(circle,#ccc,#555);z-index:3;
+}
+
+/* Tonearm */
+.tawrap{position:absolute;top:2%;right:2%;width:50%;height:56%;pointer-events:none;z-index:4}
+.tapivot{
+  position:absolute;top:6%;right:6%;
+  width:14px;height:14px;border-radius:50%;
+  background:radial-gradient(circle,#999,#444);
+  box-shadow:0 2px 8px rgba(0,0,0,.6);
+}
+.taarm{
+  position:absolute;top:calc(6% + 7px);right:calc(6% + 7px);
+  width:2.5px;height:78%;
+  background:linear-gradient(to bottom,#888 0%,#555 100%);
+  border-radius:2px;transform-origin:top center;
+  transform:rotate(-30deg);
+}
+.taarm::after{
+  content:'';position:absolute;bottom:-2px;left:50%;
+  transform:translateX(-50%) rotate(14deg);
+  width:10px;height:2.5px;background:#666;border-radius:2px;
+}
+.tahead{
+  position:absolute;bottom:-8px;left:50%;
   transform:translateX(-50%);
-  z-index:20;display:flex;flex-direction:column;align-items:center;gap:8px;
-  width:min(92vw,700px);
-  transition:opacity var(--hide-speed) ease,transform var(--hide-speed) ease;
+  width:7px;height:7px;border-radius:50%;background:#aaa;
 }
-.ctrl-wrap.off{opacity:0;transform:translateX(-50%) translateY(16px);pointer-events:none}
-.ctrl-wrap.gone{display:none}
 
-.ctrl-card{
-  background:rgba(22,22,22,.75);backdrop-filter:blur(60px);-webkit-backdrop-filter:blur(60px);
-  border:1px solid rgba(255,255,255,.1);border-radius:50px;
-  padding:10px 18px;display:flex;flex-direction:row;align-items:center;gap:14px;
-  width:100%;
+@keyframes vspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ── RIGHT PANEL ── */
+#rpanel{
+  background:rgba(8,8,8,.88);
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
 }
-.ctrl-btns{display:flex;align-items:center;gap:2px;flex-shrink:0}
-.ctrl-track{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
-.ctrl-art{width:40px;height:40px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#222}
-.ctrl-art img{width:100%;height:100%;object-fit:cover;display:block}
-.ctrl-info{flex:1;min-width:0}
-.ctrl-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ctrl-artist{font-size:11px;font-family:var(--font-label);color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.c-btn{background:none;border:none;color:var(--text);cursor:pointer;padding:6px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .1s}
-.c-btn:active{transform:scale(.85)}
-.c-btn.sm svg{width:20px;height:20px}
-.c-btn.lg svg{width:30px;height:30px}
-.ctrl-prog{width:100%;height:2px;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden}
-.ctrl-prog-fill{height:100%;background:rgba(255,255,255,.8);width:0;transition:width .35s linear}
+.rart{flex-shrink:0;aspect-ratio:1/1;width:100%;overflow:hidden;position:relative}
+.rart img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .5s}
+.rart::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(8,8,8,.95) 100%)}
+.rinfo{flex:1;padding:16px 18px;display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--border)}
+.rlabel{font-size:9px;font-weight:700;letter-spacing:1.6px;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:2px}
+.rtitle{font-size:15px;font-weight:700;line-height:1.3;color:#fff}
+.rartist{font-size:12px;font-family:var(--fm);color:var(--dim);margin-top:1px}
+.ralbum{font-size:10.5px;font-family:var(--fm);color:rgba(255,255,255,.2);margin-top:3px}
 
-/* ── Top Buttons (auto-hide) ── */
-.ui-fade{transition:opacity var(--hide-speed) ease;pointer-events:auto}
-.ui-fade.dim{opacity:0;pointer-events:none}
-.top-btn{position:fixed;top:calc(10px + var(--safe-top));z-index:15;background:rgba(255,255,255,.08);border:none;color:var(--text2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);cursor:pointer;border-radius:50%}
-.top-btn svg{display:block}
-#clockToggle{right:12px;width:30px;height:30px;padding:7px}
-#beatToggle{right:48px;width:30px;height:30px;padding:7px}
-#discBtn{left:12px;border-radius:14px;padding:6px 11px;font-family:var(--font-label);font-size:10px;width:auto;height:auto}
-
-.beat-off #beatToggle{opacity:.3}
-
-/* ── Responsive ── */
-@media (max-width:380px){
-  .fan-card{width:min(36vw,140px)}
-  .clock-time.big .d-slot,.clock-time.big .d-sep{font-size:min(15vw,80px)}
-  .clock-time.sm .d-slot,.clock-time.sm .d-sep{font-size:10vw}
-  .ctrl-wrap{width:94vw}
+/* ── BOTTOM BAR ── */
+#bot{
+  height:var(--botH);padding-bottom:var(--safe-b);
+  background:rgba(4,4,4,.94);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:16px;
+  padding-left:18px;padding-right:18px;
+  flex-shrink:0;z-index:20;position:relative;
 }
-@media (orientation:landscape) and (max-height:500px){
-  .fan-card{width:min(20vh,130px)}
-  .fan-label{bottom:calc(80px + var(--safe-bottom));font-size:12px}
-  .clock-time.sm .d-slot,.clock-time.sm .d-sep{font-size:min(10vh,48px)}
-  .clock-time.big .d-slot,.clock-time.big .d-sep{font-size:min(16vh,80px)}
+.bleft{display:flex;align-items:center;gap:10px;width:var(--sideW);flex-shrink:0;min-width:0}
+.bart{width:42px;height:42px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#1a1a1a}
+.bart img{width:100%;height:100%;object-fit:cover;display:block}
+.binfo{flex:1;min-width:0}
+.btitle{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bartist{font-size:10px;font-family:var(--fm);color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.bcenter{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.bbtns{display:flex;align-items:center;gap:2px}
+.cbtn{
+  background:none;border:none;color:#fff;cursor:pointer;padding:7px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .1s,opacity .1s;
 }
-@media (min-width:768px){.fan-card{width:min(20vw,240px)}}
+.cbtn:active{transform:scale(.8);opacity:.65}
+.cbtn.sm svg{width:20px;height:20px}
+.cbtn.lg svg{width:28px;height:28px}
+
+/* Waveform */
+#wf{
+  width:100%;max-width:480px;height:30px;
+  display:flex;align-items:center;gap:1.5px;
+  cursor:pointer;
+}
+.wb{
+  flex:1;min-width:0;border-radius:2px;
+  background:rgba(255,255,255,.1);
+  transform-origin:center;
+  transition:background .12s;
+  animation:wba var(--d,.5s) ease-in-out infinite alternate;
+  animation-play-state:paused;
+}
+#app.playing .wb{animation-play-state:running}
+.wb.done{background:rgba(255,255,255,.76)}
+@keyframes wba{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
+
+.bright{width:var(--rightW);flex-shrink:0;display:flex;justify-content:flex-end;align-items:center}
+.btime{font-family:var(--fd);font-size:10.5px;color:rgba(255,255,255,.25);letter-spacing:.3px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+  :root{--sideW:0px;--rightW:0px;--vsize:min(66vw,320px)}
+  #side,#rpanel{display:none}
+  .bleft{width:auto}
+  .bright{width:auto}
+}
+@media(max-width:480px){
+  :root{--vsize:min(72vw,260px);--botH:120px}
+  #bot{flex-direction:column;padding-top:10px;gap:6px}
+  .bleft{width:100%}
+  .bcenter{width:100%}
+  .bright{width:100%;justify-content:center}
+}
+@media(orientation:landscape) and (max-height:500px){
+  :root{--vsize:min(42vh,250px);--topH:44px;--botH:62px}
+}
 </style>
 </head>
 <body>
 <div id="app">
-  <div class="bg"><div class="bg-layer a" id="bgA"></div><div class="bg-layer b" id="bgB"></div><div class="bg-overlay"></div><div class="bg-beat" id="bgBeat"></div></div>
+
+  <!-- Background -->
+  <div class="bg">
+    <div class="bgl a" id="bgA"></div>
+    <div class="bgl b" id="bgB"></div>
+    <div class="bgo"></div>
+    <div class="bgp" id="bgP"></div>
+  </div>
   <div class="veil" id="veil"></div>
 
   <!-- Auth -->
   <div id="auth">
-    <svg class="auth-logo" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="34" stroke="#fff" stroke-width="2.5"/><line x1="50" y1="50" x2="50" y2="22" stroke="#fff" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="50" x2="63" y2="56" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="50" r="2.5" fill="#fff"/></svg>
-    <div class="auth-title">Timessss</div>
-    <div class="auth-sub">Connect Spotify to bring your music to life</div>
-    <button class="auth-btn" id="authBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381C8.64 5.801 15.6 6.06 20.04 8.82c.541.3.719 1.02.42 1.56-.299.421-1.02.599-1.379.3z"/></svg>Connect Spotify</button>
+    <div class="av"></div>
+    <div class="at">Timessss</div>
+    <div class="as">Connect Spotify to bring your music to life</div>
+    <button id="authBtn">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381C8.64 5.801 15.6 6.06 20.04 8.82c.541.3.719 1.02.42 1.56-.299.421-1.02.599-1.379.3z"/></svg>
+      Connect Spotify
+    </button>
   </div>
 
-  <!-- Clock -->
-  <div class="clock hero" id="clock">
-    <div class="clock-time big" id="clockTime">
-      <div class="d-slot" id="h0"><span class="cur">0</span></div>
-      <div class="d-slot" id="h1"><span class="cur">0</span></div>
-      <div class="d-sep">:</div>
-      <div class="d-slot" id="m0"><span class="cur">0</span></div>
-      <div class="d-slot" id="m1"><span class="cur">0</span></div>
-      <div class="d-sep">:</div>
-      <div class="d-slot" id="s0"><span class="cur">0</span></div>
-      <div class="d-slot" id="s1"><span class="cur">0</span></div>
+  <!-- Idle: big clock -->
+  <div id="idle">
+    <div class="ct big" id="ct">
+      <div class="ds" id="h0"><span class="cur">0</span></div>
+      <div class="ds" id="h1"><span class="cur">0</span></div>
+      <div class="sep">:</div>
+      <div class="ds" id="m0"><span class="cur">0</span></div>
+      <div class="ds" id="m1"><span class="cur">0</span></div>
+      <div class="sep">:</div>
+      <div class="ds" id="s0"><span class="cur">0</span></div>
+      <div class="ds" id="s1"><span class="cur">0</span></div>
     </div>
-    <div class="clock-date" id="clockDate"></div>
+    <div class="cd" id="cd"></div>
   </div>
 
-  <!-- Top buttons -->
-  <button class="top-btn ui-fade" id="clockToggle" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg></button>
-  <button class="top-btn ui-fade" id="beatToggle" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></button>
-  <button class="top-btn ui-fade" id="discBtn" style="display:none">Disconnect</button>
+  <!-- Playing layout -->
+  <div id="play">
 
-  <!-- Fan -->
-  <div class="fan off" id="fan"></div>
-
-  <!-- Fan Label -->
-  <div class="fan-label off" id="fanLabel">
-    <div class="fan-label-name" id="fanLabelName"></div>
-    <div class="fan-label-artist" id="fanLabelArtist"></div>
-  </div>
-
-  <!-- Bottom Control Bar -->
-  <div class="ctrl-wrap gone" id="ctrl">
-    <div class="ctrl-prog"><div class="ctrl-prog-fill" id="prog"></div></div>
-    <div class="ctrl-card">
-      <div class="ctrl-btns">
-        <button class="c-btn sm" id="bPrev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-        <button class="c-btn lg" id="bPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
-        <button class="c-btn sm" id="bNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
-      </div>
-      <div class="ctrl-track">
-        <div class="ctrl-art"><img id="cArt" src="" alt=""></div>
-        <div class="ctrl-info"><div class="ctrl-title" id="cTitle">--</div><div class="ctrl-artist" id="cArtist">--</div></div>
+    <!-- Top bar -->
+    <div id="top">
+      <div class="tbrand">Timessss</div>
+      <div class="tclk" id="tclk">--:--</div>
+      <div class="tact">
+        <button class="tbt" id="beatBtn" title="Beat sync">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </button>
+        <button class="tbt" id="discBtn">Disconnect</button>
       </div>
     </div>
-  </div>
-</div>
+
+    <!-- 3 panels -->
+    <div id="main">
+
+      <!-- Left: track list -->
+      <div id="side">
+        <div class="sideh">Queue</div>
+        <div id="tracks"></div>
+      </div>
+
+      <!-- Center: vinyl -->
+      <div id="vcenter">
+        <div id="vwrap">
+          <div id="vrec">
+            <div class="vdisc"></div>
+            <div class="vlabel"><img id="vart" src="" alt=""></div>
+            <div class="vpin"></div>
+          </div>
+          <div class="tawrap">
+            <div class="tapivot"></div>
+            <div class="taarm"><div class="tahead"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: album info -->
+      <div id="rpanel">
+        <div class="rart"><img id="rimg" src="" alt=""></div>
+        <div class="rinfo">
+          <div class="rlabel">Now Playing</div>
+          <div class="rtitle" id="rtitle">--</div>
+          <div class="rartist" id="rartist">--</div>
+          <div class="ralbum" id="ralbum"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div id="bot">
+      <div class="bleft">
+        <div class="bart"><img id="bart" src="" alt=""></div>
+        <div class="binfo">
+          <div class="btitle" id="btitle">--</div>
+          <div class="bartist" id="bartist">--</div>
+        </div>
+      </div>
+      <div class="bcenter">
+        <div class="bbtns">
+          <button class="cbtn sm" id="bPrev"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+          <button class="cbtn lg" id="bPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+          <button class="cbtn sm" id="bNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+        </div>
+        <div id="wf"></div>
+      </div>
+      <div class="bright">
+        <div class="btime" id="btime">0:00 / 0:00</div>
+      </div>
+    </div>
+
+  </div><!-- /play -->
+</div><!-- /app -->
 
 <script>
-/* ═══ CONFIG ═══ */
-const C={
-  clientId:'2dba0d8b0d3540c79971f906ab1e3589',
-  redirect:'https://nanthe27.github.io/Timessss/',
-  scopes:'user-read-playback-state user-modify-playback-state user-read-recently-played user-read-currently-playing',
-  tk:'ts_tk',rt:'ts_rt',ex:'ts_ex',cv:'ts_cv',
+/* ═══ CONFIG — redirect auto-detects current origin ═══ */
+const REDIRECT = location.href.split('?')[0].replace(/index\.html$/, '');
+const C = {
+  id: '2dba0d8b0d3540c79971f906ab1e3589',
+  redirect: REDIRECT,
+  scope: 'user-read-playback-state user-modify-playback-state user-read-recently-played user-read-currently-playing',
+  TK:'ts_tk', RT:'ts_rt', EX:'ts_ex', CV:'ts_cv',
 };
-const $=s=>document.querySelector(s);
-const $$=s=>document.querySelectorAll(s);
-const esc=s=>{const d=document.createElement('span');d.textContent=s;return d.innerHTML};
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const esc = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = ms => { const s = Math.floor(ms/1000), m = Math.floor(s/60); return `${m}:${(s%60).toString().padStart(2,'0')}` };
 
 /* ═══ AUTH ═══ */
 function rnd(n){const a=new Uint8Array(n);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,'0')).join('')}
 async function sha(s){return crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))}
 function b64u(b){return btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
-async function doAuth(){const v=rnd(64);localStorage.setItem(C.cv,v);location.href='https://accounts.spotify.com/authorize?'+new URLSearchParams({client_id:C.clientId,response_type:'code',redirect_uri:C.redirect,scope:C.scopes,code_challenge_method:'S256',code_challenge:b64u(await sha(v))})}
-async function swap(code){const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:C.clientId,grant_type:'authorization_code',code,redirect_uri:C.redirect,code_verifier:localStorage.getItem(C.cv)})});const d=await r.json();if(d.access_token){sv(d);return true}return false}
-async function refresh(){const rt=localStorage.getItem(C.rt);if(!rt)return false;try{const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:C.clientId,grant_type:'refresh_token',refresh_token:rt})});const d=await r.json();if(d.access_token){sv(d);return true}}catch(e){}return false}
-function sv(d){localStorage.setItem(C.tk,d.access_token);if(d.refresh_token)localStorage.setItem(C.rt,d.refresh_token);localStorage.setItem(C.ex,Date.now()+d.expires_in*1000)}
-function tk(){return localStorage.getItem(C.tk)}
-function exp(){return Date.now()>+(localStorage.getItem(C.ex)||0)}
-function clr(){[C.tk,C.rt,C.ex,C.cv].forEach(k=>localStorage.removeItem(k))}
-async function api(p){if(exp()&&!await refresh()){goAuth();return null}try{const r=await fetch('https://api.spotify.com/v1'+p,{headers:{Authorization:'Bearer '+tk()}});if(r.status===401){if(!await refresh()){goAuth();return null};return api(p)}if(r.status===204||r.status===202)return null;return r.json()}catch(e){return null}}
-async function cmd(m,p){if(exp())await refresh();return fetch('https://api.spotify.com/v1'+p,{method:m,headers:{Authorization:'Bearer '+tk()}})}
+async function doAuth(){
+  const v=rnd(64); localStorage.setItem(C.CV,v);
+  location.href='https://accounts.spotify.com/authorize?'+new URLSearchParams({
+    client_id:C.id, response_type:'code', redirect_uri:C.redirect,
+    scope:C.scope, code_challenge_method:'S256', code_challenge:b64u(await sha(v))
+  });
+}
+async function swap(code){
+  const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams({client_id:C.id,grant_type:'authorization_code',
+      code, redirect_uri:C.redirect, code_verifier:localStorage.getItem(C.CV)})});
+  const d=await r.json(); if(d.access_token){save(d);return true} return false;
+}
+async function doRefresh(){
+  const rt=localStorage.getItem(C.RT); if(!rt)return false;
+  try{
+    const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({client_id:C.id,grant_type:'refresh_token',refresh_token:rt})});
+    const d=await r.json(); if(d.access_token){save(d);return true}
+  }catch(e){}
+  return false;
+}
+function save(d){
+  localStorage.setItem(C.TK,d.access_token);
+  if(d.refresh_token)localStorage.setItem(C.RT,d.refresh_token);
+  localStorage.setItem(C.EX,Date.now()+d.expires_in*1000);
+}
+const token=()=>localStorage.getItem(C.TK);
+const expired=()=>Date.now()>+(localStorage.getItem(C.EX)||0);
+function clearAuth(){[C.TK,C.RT,C.EX,C.CV].forEach(k=>localStorage.removeItem(k))}
+async function api(path){
+  if(expired()&&!await doRefresh()){goAuth();return null}
+  try{
+    const r=await fetch('https://api.spotify.com/v1'+path,{headers:{Authorization:'Bearer '+token()}});
+    if(r.status===401){if(!await doRefresh()){goAuth();return null}return api(path)}
+    if(r.status===204||r.status===202)return null;
+    return r.json();
+  }catch(e){return null}
+}
+async function cmd(method,path){
+  if(expired())await doRefresh();
+  return fetch('https://api.spotify.com/v1'+path,{method,headers:{Authorization:'Bearer '+token()}});
+}
 
 /* ═══ STATE ═══ */
-let S={playing:false,tid:null,prog:0,dur:0,title:'',artist:'',art:'',bpm:0,clockOn:true,beatOn:true,bgSide:'a',pollT:0,pollP:0,mode:'idle',digits:['0','0','0','0','0','0']};
+let S={playing:false,tid:null,prog:0,dur:0,title:'',artist:'',album:'',art:'',bpm:0,beatOn:true,bgSide:'a',pollT:0,pollP:0};
 
-/* ═══ CLOCK DIGITS ═══ */
-const slots=['h0','h1','m0','m1','s0','s1'];
-
-function setDigit(slotId,val){
-  const el=$('#'+slotId);
-  const cur=el.querySelector('.cur');
-  if(cur&&cur.textContent===val)return; // no change
-  // Create new digit
-  const next=document.createElement('span');
-  next.textContent=val;
-  next.className='wait';
-  el.appendChild(next);
-  // Animate
+/* ═══ CLOCK ═══ */
+const SLOTS=['h0','h1','m0','m1','s0','s1'];
+function setDigit(id,val){
+  const el=$('#'+id), cur=el.querySelector('.cur');
+  if(cur&&cur.textContent===val)return;
+  const n=document.createElement('span');
+  n.textContent=val; n.className='nxt';
+  el.appendChild(n);
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     if(cur)cur.className='out';
-    next.className='cur';
+    n.className='cur';
   }));
-  // Cleanup old
   if(cur)setTimeout(()=>{if(cur.parentNode)cur.remove()},500);
 }
-
 function tick(){
-  const n=new Date();
-  const h=n.getHours().toString().padStart(2,'0');
-  const m=n.getMinutes().toString().padStart(2,'0');
-  const s=n.getSeconds().toString().padStart(2,'0');
-  const vals=[h[0],h[1],m[0],m[1],s[0],s[1]];
-  vals.forEach((v,i)=>setDigit(slots[i],v));
-  $('#clockDate').textContent=n.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const now=new Date();
+  const h=now.getHours().toString().padStart(2,'0');
+  const m=now.getMinutes().toString().padStart(2,'0');
+  const s=now.getSeconds().toString().padStart(2,'0');
+  [h[0],h[1],m[0],m[1],s[0],s[1]].forEach((v,i)=>setDigit(SLOTS[i],v));
+  $('#cd').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  $('#tclk').textContent=`${h}:${m}`;
 }
-setInterval(tick,1000);tick();
+setInterval(tick,1000); tick();
 
-/* ═══ AUTO-HIDE UI ═══ */
-let hideTimer=null;
-function showUI(){
-  $$('.ui-fade').forEach(e=>e.classList.remove('dim'));
-  const ctrl=$('#ctrl');
-  if(S.mode==='playing'&&!ctrl.classList.contains('gone'))ctrl.classList.remove('off');
-  clearTimeout(hideTimer);
-  hideTimer=setTimeout(hideUI,3000);
-}
-function hideUI(){
-  $$('.ui-fade').forEach(e=>e.classList.add('dim'));
-  const ctrl=$('#ctrl');
-  if(!ctrl.classList.contains('gone'))ctrl.classList.add('off');
-}
-// Listen for any interaction
-['mousemove','touchstart','click','keydown'].forEach(ev=>{
-  document.addEventListener(ev,showUI,{passive:true});
-});
-
-/* ═══ CLOCK TOGGLE ═══ */
-$('#clockToggle').onclick=()=>{S.clockOn=!S.clockOn;$('#clock').classList.toggle('off',!S.clockOn);showUI()};
-
-/* ═══ BEAT TOGGLE ═══ */
-$('#beatToggle').onclick=()=>{
-  S.beatOn=!S.beatOn;
-  document.body.classList.toggle('beat-off',!S.beatOn);
-  if(!S.beatOn)stopBeat();
-  else if(S.playing&&S.bpm)startBeat(S.bpm);
-  showUI();
-};
-
-/* ═══ BACKGROUND ═══ */
+/* ═══ BG ═══ */
 function setBg(url){
   if(!url)return;
-  const nxt=S.bgSide==='a'?'b':'a';
-  const nE=$('#bg'+nxt.toUpperCase()),cE=$('#bg'+S.bgSide.toUpperCase());
+  const nx=S.bgSide==='a'?'b':'a';
+  const nE=$('#bg'+nx.toUpperCase()), cE=$('#bg'+S.bgSide.toUpperCase());
   nE.style.backgroundImage=`url(${url})`;
   requestAnimationFrame(()=>{nE.style.opacity='1';cE.style.opacity='0'});
-  S.bgSide=nxt;
+  S.bgSide=nx;
 }
 
-/* ═══ BEAT SYNC ═══ */
+/* ═══ BEAT ═══ */
 let beatId=null;
 function startBeat(bpm){
-  stopBeat();if(!S.beatOn)return;if(!bpm||bpm<40)bpm=120;S.bpm=bpm;
-  const ms=60000/bpm,el=$('#bgBeat');
-  function frame(now){
-    if(!S.playing||!S.beatOn){el.style.opacity='0';beatId=requestAnimationFrame(frame);return}
-    const v=Math.max(0,Math.sin(((now%ms)/ms)*Math.PI*2))*.85;
-    el.style.opacity=v;
-    beatId=requestAnimationFrame(frame);
+  stopBeat(); if(!S.beatOn)return; if(!bpm||bpm<40)bpm=120; S.bpm=bpm;
+  const ms=60000/bpm, el=$('#bgP');
+  function f(now){
+    if(!S.playing||!S.beatOn){el.style.opacity='0';beatId=requestAnimationFrame(f);return}
+    el.style.opacity=Math.max(0,Math.sin(((now%ms)/ms)*Math.PI*2))*.8;
+    beatId=requestAnimationFrame(f);
   }
-  beatId=requestAnimationFrame(frame);
+  beatId=requestAnimationFrame(f);
 }
-function stopBeat(){if(beatId){cancelAnimationFrame(beatId);beatId=null;$('#bgBeat').style.opacity='0'}}
+function stopBeat(){if(beatId){cancelAnimationFrame(beatId);beatId=null;$('#bgP').style.opacity='0'}}
 async function getBpm(id){const d=await api('/audio-features/'+id);return d?.tempo||0}
 
-/* ═══ FAN ═══ */
-function renderFan(cards){
-  const el=$('#fan');el.innerHTML='';
-  const ci=cards.findIndex(c=>c.cur);if(ci<0)return;
-  cards.forEach((c,i)=>{
-    const p=i-ci;if(p<-2||p>2)return;
+/* ═══ WAVEFORM ═══ */
+function buildWaveform(){
+  const el=$('#wf'); el.innerHTML='';
+  for(let i=0;i<58;i++){
+    const b=document.createElement('div');
+    b.className='wb';
+    b.style.height=(14+Math.random()*86)+'%';
+    b.style.setProperty('--d',(0.28+Math.random()*0.55).toFixed(2)+'s');
+    b.style.animationDelay=(Math.random()*0.7).toFixed(2)+'s';
+    el.appendChild(b);
+  }
+}
+function updateWaveform(){
+  const pct=S.dur?S.prog/S.dur:0;
+  const bars=$$('.wb'); const n=bars.length;
+  bars.forEach((b,i)=>b.classList.toggle('done',i/n<pct));
+  $('#btime').textContent=`${fmt(S.prog)} / ${fmt(S.dur)}`;
+}
+buildWaveform();
+
+/* ═══ TRACK LIST ═══ */
+function renderTracks(list){
+  const el=$('#tracks'); el.innerHTML='';
+  list.forEach((t,i)=>{
     const d=document.createElement('div');
-    d.className='fan-card gone-'+(p<=0?'l':'r');
-    d.innerHTML=`<img src="${c.art}" alt=""><div class="fan-card-info"><div class="fan-card-title">${esc(c.name)}</div><div class="fan-card-artist">${esc(c.artist)}</div></div>`;
+    d.className='ti'+(t.cur?' active':'');
+    d.innerHTML=`
+      <div class="tibars"><div class="tib"></div><div class="tib"></div><div class="tib"></div></div>
+      <div class="tinum">${String(i+1).padStart(2,'0')}</div>
+      <div class="tiart"><img src="${t.art||''}" loading="lazy" alt=""></div>
+      <div class="tiinfo">
+        <div class="titl">${esc(t.name)}</div>
+        <div class="tiar">${esc(t.artist)}</div>
+      </div>
+      ${t.dur?`<div class="tidur">${fmt(t.dur)}</div>`:''}
+    `;
     el.appendChild(d);
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{d.className='fan-card p'+p}));
+    if(t.cur)requestAnimationFrame(()=>d.scrollIntoView({block:'center',behavior:'smooth'}));
   });
 }
 
-/* ═══ CONTROLS ═══ */
-function renderCtrl(){
-  $('#cArt').src=S.art||'';
-  $('#cTitle').textContent=S.title||'--';
-  $('#cArtist').textContent=S.artist||'--';
-  $('#fanLabelName').textContent=S.title||'';
-  $('#fanLabelArtist').textContent=S.artist||'';
+/* ═══ RENDER ═══ */
+function render(){
+  const a=S.art||'';
+  $('#vart').src=a;
+  $('#rimg').src=a;
+  $('#bart').src=a;
+  $('#btitle').textContent=S.title||'--';
+  $('#bartist').textContent=S.artist||'--';
+  $('#rtitle').textContent=S.title||'--';
+  $('#rartist').textContent=S.artist||'--';
+  $('#ralbum').textContent=S.album||'';
   playIcon();
 }
 function playIcon(){
   $('#bPlay').innerHTML=S.playing
     ?'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
     :'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+  $('#app').classList.toggle('playing',S.playing);
 }
 
 /* ═══ PROGRESS ═══ */
-let progRAF=null;
+let pRAF=null;
 function startProg(){
-  function f(){
-    if(S.playing){const e=Date.now()-S.pollT;S.prog=Math.min(S.pollP+e,S.dur)}
-    $('#prog').style.width=(S.dur?S.prog/S.dur*100:0)+'%';
-    progRAF=requestAnimationFrame(f);
-  }
-  if(!progRAF)f();
+  const f=()=>{
+    if(S.playing){S.prog=Math.min(S.pollP+(Date.now()-S.pollT),S.dur)}
+    updateWaveform(); pRAF=requestAnimationFrame(f);
+  };
+  if(!pRAF)f();
 }
-function stopProg(){if(progRAF){cancelAnimationFrame(progRAF);progRAF=null}}
+function stopProg(){if(pRAF){cancelAnimationFrame(pRAF);pRAF=null}}
 
-/* ═══ TRACK TRANSITION ═══ */
+/* ═══ TRANSITION ═══ */
 async function transition(d){
-  const v=$('#veil');
-  v.classList.add('on');await sleep(380);
-  S.tid=d.id;S.title=d.title;S.artist=d.artist;S.art=d.art;S.prog=d.prog;S.dur=d.dur;S.playing=d.playing;
-  S.pollT=Date.now();S.pollP=d.prog;
+  const vl=$('#veil'); vl.classList.add('on'); await sleep(340);
+  S.tid=d.id; S.title=d.title; S.artist=d.artist; S.album=d.album;
+  S.art=d.art; S.prog=d.prog; S.dur=d.dur; S.playing=d.playing;
+  S.pollT=Date.now(); S.pollP=d.prog;
   setBg(S.art);
+  buildWaveform();
   const [q,rc]=await Promise.all([api('/me/player/queue'),api('/me/player/recently-played?limit=5')]);
-  const cur={name:S.title,artist:S.artist,art:S.art,cur:true};
+  const cur={name:S.title,artist:S.artist,art:S.art,dur:S.dur,cur:true};
   const seen=new Set([S.art]);
   const dedup=arr=>arr.filter(c=>{if(!c.art||seen.has(c.art))return false;seen.add(c.art);return true});
-  const right=dedup((q?.queue||[]).slice(0,2).map(t=>({name:t.name,artist:(t.artists||[]).map(a=>a.name).join(', '),art:t.album?.images?.[0]?.url||'',cur:false})));
-  const left=dedup((rc?.items||[]).slice(0,2).reverse().map(it=>({name:it.track.name,artist:(it.track.artists||[]).map(a=>a.name).join(', '),art:it.track.album?.images?.[0]?.url||'',cur:false})));
-  renderFan([...left,cur,...right]);
-  renderCtrl();
-  const bpm=await getBpm(S.tid);
-  startBeat(bpm);
-  await sleep(180);v.classList.remove('on');
+  const right=dedup((q?.queue||[]).slice(0,5).map(t=>({
+    name:t.name, artist:(t.artists||[]).map(a=>a.name).join(', '),
+    art:t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||'',
+    dur:t.duration_ms||0, cur:false
+  })));
+  const left=dedup((rc?.items||[]).slice(0,3).reverse().map(it=>({
+    name:it.track.name, artist:(it.track.artists||[]).map(a=>a.name).join(', '),
+    art:it.track.album?.images?.[1]?.url||it.track.album?.images?.[0]?.url||'',
+    dur:it.track.duration_ms||0, cur:false
+  })));
+  renderTracks([...left,cur,...right]);
+  render();
+  startBeat(await getBpm(S.tid));
+  await sleep(160); vl.classList.remove('on');
 }
 
 /* ═══ POLL ═══ */
@@ -420,52 +677,51 @@ async function poll(){
   const d=await api('/me/player/currently-playing');
   if(d?.item){
     const isNew=d.item.id!==S.tid;
-    S.playing=d.is_playing;S.pollT=Date.now();S.pollP=d.progress_ms||0;
+    S.playing=d.is_playing; S.pollT=Date.now(); S.pollP=d.progress_ms||0;
     if(isNew){
-      await transition({id:d.item.id,title:d.item.name,artist:(d.item.artists||[]).map(a=>a.name).join(', '),art:d.item.album?.images?.[0]?.url||'',prog:d.progress_ms||0,dur:d.item.duration_ms||0,playing:d.is_playing});
-      goPlaying();
-    }else{
-      S.prog=d.progress_ms||0;S.dur=d.item.duration_ms||0;playIcon();
-      if(!S.playing)stopBeat();else if(!beatId&&S.bpm&&S.beatOn)startBeat(S.bpm);
+      await transition({
+        id:d.item.id, title:d.item.name,
+        artist:(d.item.artists||[]).map(a=>a.name).join(', '),
+        album:d.item.album?.name||'',
+        art:d.item.album?.images?.[0]?.url||'',
+        prog:d.progress_ms||0, dur:d.item.duration_ms||0, playing:d.is_playing
+      });
+      goPlay();
+    } else {
+      S.prog=d.progress_ms||0; S.dur=d.item.duration_ms||0;
+      playIcon();
+      if(!S.playing)stopBeat();
+      else if(!beatId&&S.bpm&&S.beatOn)startBeat(S.bpm);
     }
     startProg();
-  }else{
-    S.playing=false;S.tid=null;goIdle();stopBeat();stopProg();
+  } else {
+    S.playing=false; S.tid=null;
+    $('#app').classList.remove('playing');
+    goIdle(); stopBeat(); stopProg();
   }
 }
 
 /* ═══ MODES ═══ */
-function goPlaying(){
-  S.mode='playing';
-  $('#fan').classList.remove('off');
-  $('#ctrl').classList.remove('gone');
-  $('#fanLabel').classList.remove('off');
-  $('#clock').classList.remove('hero');
-  $('#clockTime').classList.remove('big');$('#clockTime').classList.add('sm');
-  $('#clockToggle').style.display='';$('#beatToggle').style.display='';$('#discBtn').style.display='';
-  showUI(); // start auto-hide timer
-}
+function goPlay(){$('#idle').classList.add('off');$('#play').classList.add('on')}
 function goIdle(){
-  S.mode='idle';
-  $('#fan').classList.add('off');
-  $('#ctrl').classList.add('gone');$('#ctrl').classList.add('off');
-  $('#fanLabel').classList.add('off');
-  $('#clock').classList.add('hero');$('#clock').classList.remove('off');
-  $('#clockTime').classList.add('big');$('#clockTime').classList.remove('sm');
-  S.clockOn=true;
-  $('#clockToggle').style.display='none';$('#beatToggle').style.display='none';$('#discBtn').style.display='none';
+  $('#idle').classList.remove('off');$('#play').classList.remove('on');
   $('#bgA').style.opacity='0';$('#bgB').style.opacity='0';
 }
 
-/* ═══ CONTROL EVENTS ═══ */
+/* ═══ CONTROLS ═══ */
 $('#bPlay').onclick=async()=>{
   if(S.playing){await cmd('PUT','/me/player/pause');S.playing=false;stopBeat()}
   else{await cmd('PUT','/me/player/play');S.playing=true;if(S.bpm&&S.beatOn)startBeat(S.bpm)}
-  S.pollT=Date.now();S.pollP=S.prog;playIcon();showUI();
+  S.pollT=Date.now();S.pollP=S.prog;playIcon();
 };
-$('#bNext').onclick=async()=>{await cmd('POST','/me/player/next');setTimeout(poll,500);showUI()};
-$('#bPrev').onclick=async()=>{await cmd('POST','/me/player/previous');setTimeout(poll,500);showUI()};
-$('#discBtn').onclick=()=>{clr();goAuth()};
+$('#bNext').onclick=async()=>{await cmd('POST','/me/player/next');setTimeout(poll,500)};
+$('#bPrev').onclick=async()=>{await cmd('POST','/me/player/previous');setTimeout(poll,500)};
+$('#beatBtn').onclick=()=>{
+  S.beatOn=!S.beatOn;
+  document.body.classList.toggle('beat-off',!S.beatOn);
+  if(!S.beatOn)stopBeat(); else if(S.playing&&S.bpm)startBeat(S.bpm);
+};
+$('#discBtn').onclick=()=>{clearAuth();goAuth()};
 
 /* ═══ AUTH FLOW ═══ */
 function goAuth(){if(pollId)clearInterval(pollId);stopBeat();stopProg();$('#auth').classList.remove('out');goIdle()}
@@ -474,11 +730,11 @@ $('#authBtn').onclick=doAuth;
 
 /* ═══ INIT ═══ */
 (async()=>{
-  const p=new URLSearchParams(location.search),code=p.get('code');
+  const p=new URLSearchParams(location.search), code=p.get('code');
   if(code){history.replaceState(null,'',location.pathname);if(await swap(code)){goMain();return}}
-  const t=tk();
-  if(t&&!exp()){goMain();return}
-  if(t&&exp()&&await refresh()){goMain();return}
+  const t=token();
+  if(t&&!expired()){goMain();return}
+  if(t&&expired()&&await doRefresh()){goMain();return}
   goAuth();
 })();
 
