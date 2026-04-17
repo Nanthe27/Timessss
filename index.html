@@ -299,7 +299,10 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 .btitle{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bartist{font-size:10px;font-family:var(--fm);color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.bcenter{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.bcenter{
+  position:absolute;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+}
 .bbtns{display:flex;align-items:center;gap:8px}
 .cbtn{
   background:none;border:none;color:#fff;cursor:pointer;
@@ -480,7 +483,6 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
         </div>
         <div class="btime" id="btime">0:00 / 0:00</div>
       </div>
-      <div class="bright"></div>
     </div>
 
   </div>
