@@ -300,16 +300,21 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 .btitle{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bartist{font-size:10px;font-family:var(--fm);color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.bcenter{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px}
-.bbtns{display:flex;align-items:center;gap:2px}
+.bcenter{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.bbtns{display:flex;align-items:center;gap:8px}
 .cbtn{
-  background:none;border:none;color:#fff;cursor:pointer;padding:7px;border-radius:50%;
+  background:rgba(255,255,255,.12);
+  border:none;color:#fff;cursor:pointer;
+  border-radius:18px;
   display:flex;align-items:center;justify-content:center;
-  transition:transform .1s,opacity .1s;
+  transition:transform .15s,background .15s;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
 }
-.cbtn:active{transform:scale(.8);opacity:.65}
-.cbtn.sm svg{width:20px;height:20px}
-.cbtn.lg svg{width:28px;height:28px}
+.cbtn:active{transform:scale(.88);background:rgba(255,255,255,.22)}
+.cbtn.sm{width:54px;height:44px}
+.cbtn.sm svg{width:22px;height:22px}
+.cbtn.lg{width:64px;height:44px}
+.cbtn.lg svg{width:26px;height:26px}
 
 /* progress shown as time only */
 
