@@ -558,7 +558,10 @@ let S={playing:false,tid:null,prog:0,dur:0,title:'',artist:'',album:'',art:'',bg
 /* ═══ CLOCK ═══ */
 const SLOTS=['h0','h1','m0','m1','s0','s1'];
 function setDigit(id,val){
-  const el=$('#'+id), cur=el.querySelector('.cur');
+  const el=$('#'+id);
+  // Remove any stale out/nxt spans left over from backgrounded tab
+  el.querySelectorAll('.out,.nxt').forEach(s=>s.remove());
+  const cur=el.querySelector('.cur');
   if(cur&&cur.textContent===val)return;
   const n=document.createElement('span');
   n.textContent=val; n.className='nxt';
@@ -569,6 +572,21 @@ function setDigit(id,val){
   }));
   if(cur)setTimeout(()=>{if(cur.parentNode)cur.remove()},500);
 }
+
+// When tab regains focus, force-clean all digit slots instantly
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden){
+    SLOTS.forEach(id=>{
+      const el=$('#'+id);
+      const all=[...el.querySelectorAll('span')];
+      if(all.length>1){
+        all.slice(0,-1).forEach(s=>s.remove());
+        all[all.length-1].className='cur';
+      }
+    });
+    tick();
+  }
+});
 function tick(){
   const now=new Date();
   const h=now.getHours().toString().padStart(2,'0');
@@ -621,9 +639,6 @@ function render(){
   const a=S.art||'';
   $('#vart').src=a;
   $('#rimg').src=a;
-  $('#bart').src=a;
-  $('#btitle').textContent=S.title||'--';
-  $('#bartist').textContent=S.artist||'--';
   $('#rtitle').textContent=S.title||'--';
   $('#rartist').textContent=S.artist||'--';
   $('#ralbum').textContent=S.album||'';
