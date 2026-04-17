@@ -336,14 +336,14 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   /* vcenter: fills main, overflow allowed for large vinyl */
   #vcenter{overflow:visible;padding:0;gap:0}
 
-  /* Vinyl: half off-screen to the right */
+  /* Vinyl: bigger, half off-screen right, centered vertically */
   #vwrap{
     position:absolute;
-    right:-46vw;
+    right:-50vw;
     top:50%;
     transform:translateY(-50%);
-    width:min(92vw,540px);
-    height:min(92vw,540px);
+    width:min(110vw,680px);
+    height:min(110vw,680px);
   }
 
   /* Track info: top-left overlay */
@@ -380,19 +380,18 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
     order:0;
   }
 
-  /* Bottom bar: becomes a vertical pill on the left side */
+  /* Bottom bar: vertical controls aligned to disk center */
   #bot{
     position:absolute;
     left:6%;
     top:50%;
     transform:translateY(-50%);
     height:auto;width:auto;
-    background:rgba(255,255,255,.08);
-    backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
-    border:1px solid rgba(255,255,255,.1);
-    border-top:1px solid rgba(255,255,255,.1);
-    border-radius:60px;
-    padding:24px 11px;
+    background:none;
+    border:none;
+    border-top:none;
+    backdrop-filter:none;-webkit-backdrop-filter:none;
+    padding:10px 6px;
     flex-direction:column;
     align-items:center;
     justify-content:center;
