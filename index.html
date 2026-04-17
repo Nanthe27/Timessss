@@ -16,9 +16,9 @@
 :root{
   --safe-t:env(safe-area-inset-top,0px);
   --safe-b:env(safe-area-inset-bottom,0px);
-  --dim:#888;
+  --dim:rgba(255,255,255,.5);
+  --dim2:rgba(255,255,255,.22);
   --border:rgba(255,255,255,.08);
-  --card:rgba(12,12,12,.88);
   --fn:'Quicksand',sans-serif;
   --fm:'Ubuntu',sans-serif;
   --fd:'Rubik',sans-serif;
@@ -31,12 +31,37 @@
 html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var(--fn);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 #app{height:100%;position:relative;overflow:hidden}
 
-/* ── BG ── */
-.bg{position:fixed;inset:0;z-index:0}
-.bgl{position:absolute;inset:-80px;background-size:cover;background-position:center;filter:blur(110px) saturate(1.8) brightness(.38);transition:opacity 1.8s ease;will-change:opacity}
-.bgl.a{opacity:1}.bgl.b{opacity:0}
-.bgo{position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,0,0,.6) 0%,rgba(0,0,0,.2) 50%,rgba(0,0,0,.7) 100%)}
-.bgp{position:absolute;inset:-80px;background:radial-gradient(ellipse at 50% 50%,rgba(255,255,255,.055) 0%,transparent 65%);opacity:0;pointer-events:none;will-change:opacity}
+/* ── BACKGROUND — cinematic slow drift ── */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.bgl{
+  position:absolute;inset:-100px;
+  background-size:cover;background-position:center;
+  filter:blur(120px) saturate(2) brightness(.36);
+  will-change:transform,opacity;
+  transition:opacity 2s ease;
+}
+.bgl.a{opacity:1;animation:drift-a 28s ease-in-out infinite}
+.bgl.b{opacity:0;animation:drift-b 34s ease-in-out infinite}
+@keyframes drift-a{
+  0%  {transform:scale(1.08) translate(0%,0%)}
+  25% {transform:scale(1.13) translate(-1.5%,1.2%)}
+  50% {transform:scale(1.1)  translate(1.2%,-0.8%)}
+  75% {transform:scale(1.14) translate(-0.8%,-1.4%)}
+  100%{transform:scale(1.08) translate(0%,0%)}
+}
+@keyframes drift-b{
+  0%  {transform:scale(1.1)  translate(1%,-1%)}
+  33% {transform:scale(1.15) translate(-1.2%,1.5%)}
+  66% {transform:scale(1.12) translate(1.8%,0.5%)}
+  100%{transform:scale(1.1)  translate(1%,-1%)}
+}
+/* dark gradient overlay — top and bottom darker, centre open */
+.bgo{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(0,0,0,.08) 0%, rgba(0,0,0,.55) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,.55) 0%, transparent 25%, transparent 75%, rgba(0,0,0,.65) 100%);
+}
 
 /* ── Veil ── */
 .veil{position:fixed;inset:0;background:#000;opacity:0;z-index:300;pointer-events:none;transition:opacity .4s}
@@ -49,8 +74,6 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   background:#000;transition:opacity .5s,transform .5s;
 }
 #auth.out{opacity:0;transform:scale(.96);pointer-events:none}
-
-/* Vinyl spinner on auth */
 .av{
   width:96px;height:96px;border-radius:50%;
   background:repeating-radial-gradient(circle at 50% 50%,#1c1c1c 0px,#0d0d0d 1px,#181818 2px,#0d0d0d 3px);
@@ -77,13 +100,13 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   pointer-events:none;transition:opacity .5s;
 }
 #idle.off{opacity:0}
-.ct{display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:300;line-height:1;text-shadow:0 2px 28px rgba(0,0,0,.4)}
+.ct{display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:300;line-height:1;text-shadow:0 2px 40px rgba(0,0,0,.5)}
 .ct.big .ds,.ct.big .sep{font-size:min(18vw,116px)}
-.cd{font-family:var(--fm);font-size:13px;font-weight:300;color:var(--dim);margin-top:10px;letter-spacing:.5px}
+.cd{font-family:var(--fm);font-size:13px;font-weight:300;color:var(--dim);margin-top:12px;letter-spacing:.5px}
 
-/* Digit slots — NO overflow:hidden (causes black paint artifacts) */
+/* Digit slots — no overflow:hidden */
 .ds{display:inline-block;position:relative;text-align:center;height:1.1em;width:.62em}
-.sep{width:.3em;text-align:center;opacity:.35}
+.sep{width:.3em;text-align:center;opacity:.3}
 .ds span{display:block;position:absolute;left:0;right:0;transition:transform .38s cubic-bezier(.4,0,.08,1),opacity .3s ease}
 .ds span.cur{transform:translateY(0);opacity:1}
 .ds span.out{transform:translateY(-100%);opacity:0}
@@ -99,34 +122,30 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 
 /* TOP BAR */
 #top{
-  height:var(--topH);padding-top:var(--safe-t);
-  display:flex;align-items:center;padding:0 18px;
-  padding-top:var(--safe-t);
-  background:rgba(5,5,5,.82);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
-  border-bottom:1px solid var(--border);flex-shrink:0;z-index:20;position:relative;
-  gap:14px;
+  height:var(--topH);
+  padding:0 18px;padding-top:var(--safe-t);
+  display:flex;align-items:center;gap:14px;
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;z-index:20;position:relative;
 }
-.tbrand{font-size:15px;font-weight:700;letter-spacing:-.2px;color:#fff;flex-shrink:0}
+.tbrand{font-size:15px;font-weight:700;letter-spacing:-.2px;color:rgba(255,255,255,.9);flex-shrink:0}
 .tclk{
   flex:1;text-align:center;
-  font-family:var(--fd);font-size:19px;font-weight:300;
-  opacity:.8;letter-spacing:.5px;
+  font-family:var(--fd);font-size:18px;font-weight:300;
+  letter-spacing:1px;color:rgba(255,255,255,.82);
 }
 .tact{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .tbt{
   background:rgba(255,255,255,.07);border:1px solid var(--border);
-  color:rgba(255,255,255,.6);cursor:pointer;
-  border-radius:50%;width:32px;height:32px;
-  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.55);cursor:pointer;
+  border-radius:50px;padding:0 14px;height:30px;
+  display:flex;align-items:center;
+  font-family:var(--fm);font-size:11px;
   transition:background .18s;flex-shrink:0;
 }
-.tbt svg{width:15px;height:15px;display:block}
 .tbt:active{background:rgba(255,255,255,.14)}
-#discBtn{
-  border-radius:50px;padding:0 14px;width:auto;
-  font-family:var(--fm);font-size:11px;white-space:nowrap;
-}
-.beat-off #beatBtn{opacity:.25}
 
 /* MAIN 3-PANEL */
 #main{
@@ -137,19 +156,20 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 
 /* ── LEFT SIDEBAR ── */
 #side{
-  background:rgba(5,5,5,.9);
+  background:rgba(0,0,0,.5);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-right:1px solid var(--border);
   display:flex;flex-direction:column;overflow:hidden;
 }
 .sideh{
   padding:16px 18px 12px;
-  font-size:9.5px;font-weight:700;letter-spacing:1.6px;color:rgba(255,255,255,.22);
+  font-size:9px;font-weight:700;letter-spacing:1.8px;color:var(--dim2);
   text-transform:uppercase;flex-shrink:0;
   border-bottom:1px solid var(--border);
 }
 #tracks{
   flex:1;overflow-y:auto;overflow-x:hidden;
-  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.09) transparent;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent;
 }
 #tracks::-webkit-scrollbar{width:3px}
 #tracks::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
@@ -162,11 +182,10 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   position:relative;
 }
 .ti:hover{background:rgba(255,255,255,.04)}
-.ti.active{background:rgba(255,255,255,.055)}
+.ti.active{background:rgba(255,255,255,.06)}
 .ti.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:#c0392b;border-radius:0 2px 2px 0}
-.tinum{font-family:var(--fd);font-size:10.5px;color:rgba(255,255,255,.2);min-width:18px;text-align:right;flex-shrink:0}
+.tinum{font-family:var(--fd);font-size:10px;color:var(--dim2);min-width:18px;text-align:right;flex-shrink:0}
 .ti.active .tinum{display:none}
-/* animated bars for active */
 .tibars{display:none;align-items:flex-end;gap:1.5px;height:13px;min-width:18px;flex-shrink:0}
 .ti.active .tibars{display:flex}
 .tib{width:2.5px;background:#c0392b;border-radius:1px;animation:tiba .55s ease-in-out infinite alternate}
@@ -175,20 +194,19 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 .tib:nth-child(3){height:6px;animation-delay:.36s}
 #app:not(.playing) .tib{animation-play-state:paused}
 @keyframes tiba{from{transform:scaleY(.3)}to{transform:scaleY(1)}}
-
 .tiart{width:34px;height:34px;border-radius:5px;overflow:hidden;flex-shrink:0;background:#1a1a1a}
 .tiart img{width:100%;height:100%;object-fit:cover;display:block}
 .tiinfo{flex:1;min-width:0}
 .titl{font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tiar{font-size:10px;font-family:var(--fm);color:var(--dim);margin-top:1.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tidur{font-size:9.5px;font-family:var(--fd);color:rgba(255,255,255,.2);flex-shrink:0;margin-left:2px}
+.tidur{font-size:9.5px;font-family:var(--fd);color:var(--dim2);flex-shrink:0;margin-left:2px}
 
 /* ── CENTER VINYL ── */
 #vcenter{
-  display:flex;align-items:center;justify-content:center;
-  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;gap:18px;
 }
-#vwrap{position:relative;width:var(--vsize);height:var(--vsize)}
+#vwrap{position:relative;width:var(--vsize);height:var(--vsize);flex-shrink:0}
 
 #vrec{
   width:100%;height:100%;border-radius:50%;
@@ -196,23 +214,20 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   animation:vspin 3.6s linear infinite;
   animation-play-state:paused;
   will-change:transform;
-  filter:drop-shadow(0 24px 64px rgba(0,0,0,.9));
+  filter:drop-shadow(0 28px 70px rgba(0,0,0,.95));
 }
 #app.playing #vrec{animation-play-state:running}
-
 .vdisc{
   position:absolute;inset:0;border-radius:50%;
-  background:repeating-radial-gradient(circle at 50% 50%,
-    #101010 0px,#090909 1px,#151515 2px,#090909 3px,#111 5px
-  );
+  background:repeating-radial-gradient(circle at 50% 50%,#101010 0px,#090909 1px,#151515 2px,#090909 3px,#111 5px);
 }
 .vdisc::after{
   content:'';position:absolute;inset:0;border-radius:50%;
   background:conic-gradient(
-    rgba(255,255,255,.035) 0deg,transparent 50deg,
+    rgba(255,255,255,.03) 0deg,transparent 50deg,
     rgba(255,255,255,.02) 110deg,transparent 160deg,
-    rgba(255,255,255,.03) 220deg,transparent 270deg,
-    rgba(255,255,255,.035) 320deg,transparent 360deg
+    rgba(255,255,255,.025) 220deg,transparent 270deg,
+    rgba(255,255,255,.03) 320deg,transparent 360deg
   );
 }
 .vlabel{
@@ -226,54 +241,53 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   top:50%;left:50%;transform:translate(-50%,-50%);
   border-radius:50%;background:radial-gradient(circle,#ccc,#555);z-index:3;
 }
-
-/* Tonearm */
 .tawrap{position:absolute;top:2%;right:2%;width:50%;height:56%;pointer-events:none;z-index:4}
 .tapivot{
-  position:absolute;top:6%;right:6%;
-  width:14px;height:14px;border-radius:50%;
-  background:radial-gradient(circle,#999,#444);
+  position:absolute;top:6%;right:6%;width:14px;height:14px;
+  border-radius:50%;background:radial-gradient(circle,#999,#444);
   box-shadow:0 2px 8px rgba(0,0,0,.6);
 }
 .taarm{
   position:absolute;top:calc(6% + 7px);right:calc(6% + 7px);
   width:2.5px;height:78%;
-  background:linear-gradient(to bottom,#888 0%,#555 100%);
-  border-radius:2px;transform-origin:top center;
-  transform:rotate(-30deg);
+  background:linear-gradient(to bottom,#888,#555);
+  border-radius:2px;transform-origin:top center;transform:rotate(-30deg);
 }
 .taarm::after{
   content:'';position:absolute;bottom:-2px;left:50%;
   transform:translateX(-50%) rotate(14deg);
   width:10px;height:2.5px;background:#666;border-radius:2px;
 }
-.tahead{
-  position:absolute;bottom:-8px;left:50%;
-  transform:translateX(-50%);
-  width:7px;height:7px;border-radius:50%;background:#aaa;
-}
+.tahead{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:#aaa}
+
+/* Vinyl info shown below vinyl (portrait / vertical screens) */
+#vinfo{display:none;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:0 20px}
+.vi-title{font-size:18px;font-weight:700;letter-spacing:-.2px}
+.vi-artist{font-size:13px;font-family:var(--fm);color:var(--dim)}
 
 @keyframes vspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
 /* ── RIGHT PANEL ── */
 #rpanel{
-  background:rgba(8,8,8,.88);
+  background:rgba(0,0,0,.48);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-left:1px solid var(--border);
   display:flex;flex-direction:column;overflow:hidden;
 }
 .rart{flex-shrink:0;aspect-ratio:1/1;width:100%;overflow:hidden;position:relative}
 .rart img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .5s}
-.rart::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(8,8,8,.95) 100%)}
+.rart::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 55%,rgba(0,0,0,.88) 100%)}
 .rinfo{flex:1;padding:16px 18px;display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--border)}
-.rlabel{font-size:9px;font-weight:700;letter-spacing:1.6px;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:2px}
-.rtitle{font-size:15px;font-weight:700;line-height:1.3;color:#fff}
+.rlabel{font-size:9px;font-weight:700;letter-spacing:1.6px;color:var(--dim2);text-transform:uppercase;margin-bottom:2px}
+.rtitle{font-size:15px;font-weight:700;line-height:1.3}
 .rartist{font-size:12px;font-family:var(--fm);color:var(--dim);margin-top:1px}
-.ralbum{font-size:10.5px;font-family:var(--fm);color:rgba(255,255,255,.2);margin-top:3px}
+.ralbum{font-size:10.5px;font-family:var(--fm);color:var(--dim2);margin-top:3px}
 
 /* ── BOTTOM BAR ── */
 #bot{
   height:var(--botH);padding-bottom:var(--safe-b);
-  background:rgba(4,4,4,.94);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
   border-top:1px solid var(--border);
   display:flex;align-items:center;gap:16px;
   padding-left:18px;padding-right:18px;
@@ -297,43 +311,88 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 .cbtn.sm svg{width:20px;height:20px}
 .cbtn.lg svg{width:28px;height:28px}
 
-/* Waveform */
+/* Waveform — static bars, no bounce animation, just color = progress */
 #wf{
-  width:100%;max-width:480px;height:30px;
+  width:100%;max-width:480px;height:28px;
   display:flex;align-items:center;gap:1.5px;
   cursor:pointer;
 }
 .wb{
   flex:1;min-width:0;border-radius:2px;
   background:rgba(255,255,255,.1);
-  transform-origin:center;
-  transition:background .12s;
-  animation:wba var(--d,.5s) ease-in-out infinite alternate;
-  animation-play-state:paused;
+  transition:background .15s;
 }
-#app.playing .wb{animation-play-state:running}
-.wb.done{background:rgba(255,255,255,.76)}
-@keyframes wba{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
+.wb.done{background:rgba(255,255,255,.72)}
 
 .bright{width:var(--rightW);flex-shrink:0;display:flex;justify-content:flex-end;align-items:center}
-.btime{font-family:var(--fd);font-size:10.5px;color:rgba(255,255,255,.25);letter-spacing:.3px}
+.btime{font-family:var(--fd);font-size:10.5px;color:rgba(255,255,255,.22);letter-spacing:.3px}
 
-/* ── RESPONSIVE ── */
-@media(max-width:860px){
-  :root{--sideW:0px;--rightW:0px;--vsize:min(66vw,320px)}
+/* ══════════════════════════════════════════
+   VERTICAL / PORTRAIT LAYOUT
+   (portrait monitors, vertical TVs, phones held upright)
+══════════════════════════════════════════ */
+@media (orientation:portrait),(max-aspect-ratio:3/4){
+  :root{
+    --vsize:min(72vw,440px);
+    --topH:54px;
+    --botH:auto;
+    --sideW:0px;
+    --rightW:0px;
+  }
+  /* Hide side panels */
   #side,#rpanel{display:none}
+
+  /* Show track info below vinyl */
+  #vinfo{display:flex}
+
+  /* Stack main vertically */
+  #main{
+    grid-template-columns:1fr;
+    grid-template-rows:1fr;
+  }
+  #vcenter{
+    padding:24px 16px 16px;
+    gap:22px;
+    justify-content:center;
+  }
+
+  /* Bottom bar: two rows */
+  #bot{
+    flex-direction:column;
+    padding:14px 20px calc(14px + var(--safe-b));
+    height:auto;gap:10px;
+  }
+  /* Row 1: art + track info */
+  .bleft{width:100%;flex-shrink:0}
+  /* Row 2: waveform + controls + time all in center */
+  .bcenter{width:100%}
+  .bright{width:100%;justify-content:center;margin-top:-4px}
+  .btime{font-size:11px}
+
+  /* Top bar clock bigger */
+  .tclk{font-size:16px}
+}
+
+/* Extra-tall portrait (big vertical TV) */
+@media (orientation:portrait) and (min-height:1000px){
+  :root{--vsize:min(65vw,600px)}
+  .vi-title{font-size:24px}
+  .vi-artist{font-size:15px}
+  .ct.big .ds,.ct.big .sep{font-size:min(16vw,130px)}
+}
+
+/* Landscape small height (horizontal phone/tablet) */
+@media (orientation:landscape) and (max-height:500px){
+  :root{--vsize:min(42vh,240px);--topH:44px;--botH:62px}
+}
+
+/* Wide desktop — hide panels if not enough room */
+@media (max-width:860px) and (orientation:landscape){
+  :root{--sideW:0px;--rightW:0px;--vsize:min(56vh,360px)}
+  #side,#rpanel{display:none}
+  #vinfo{display:flex}
   .bleft{width:auto}
   .bright{width:auto}
-}
-@media(max-width:480px){
-  :root{--vsize:min(72vw,260px);--botH:120px}
-  #bot{flex-direction:column;padding-top:10px;gap:6px}
-  .bleft{width:100%}
-  .bcenter{width:100%}
-  .bright{width:100%;justify-content:center}
-}
-@media(orientation:landscape) and (max-height:500px){
-  :root{--vsize:min(42vh,250px);--topH:44px;--botH:62px}
 }
 </style>
 </head>
@@ -345,7 +404,6 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
     <div class="bgl a" id="bgA"></div>
     <div class="bgl b" id="bgB"></div>
     <div class="bgo"></div>
-    <div class="bgp" id="bgP"></div>
   </div>
   <div class="veil" id="veil"></div>
 
@@ -378,28 +436,23 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   <!-- Playing layout -->
   <div id="play">
 
-    <!-- Top bar -->
     <div id="top">
       <div class="tbrand">Timessss</div>
-      <div class="tclk" id="tclk">--:--</div>
+      <div class="tclk" id="tclk">--:--:--</div>
       <div class="tact">
-        <button class="tbt" id="beatBtn" title="Beat sync">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-        </button>
         <button class="tbt" id="discBtn">Disconnect</button>
       </div>
     </div>
 
-    <!-- 3 panels -->
     <div id="main">
 
-      <!-- Left: track list -->
+      <!-- Left -->
       <div id="side">
         <div class="sideh">Queue</div>
         <div id="tracks"></div>
       </div>
 
-      <!-- Center: vinyl -->
+      <!-- Center: vinyl + info (portrait) -->
       <div id="vcenter">
         <div id="vwrap">
           <div id="vrec">
@@ -412,9 +465,14 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
             <div class="taarm"><div class="tahead"></div></div>
           </div>
         </div>
+        <!-- Only visible in portrait/vertical -->
+        <div id="vinfo">
+          <div class="vi-title" id="vi-title">--</div>
+          <div class="vi-artist" id="vi-artist">--</div>
+        </div>
       </div>
 
-      <!-- Right: album info -->
+      <!-- Right -->
       <div id="rpanel">
         <div class="rart"><img id="rimg" src="" alt=""></div>
         <div class="rinfo">
@@ -449,8 +507,8 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
       </div>
     </div>
 
-  </div><!-- /play -->
-</div><!-- /app -->
+  </div>
+</div>
 
 <script>
 /* ═══ CONFIG — redirect auto-detects current origin ═══ */
@@ -519,7 +577,7 @@ async function cmd(method,path){
 }
 
 /* ═══ STATE ═══ */
-let S={playing:false,tid:null,prog:0,dur:0,title:'',artist:'',album:'',art:'',bpm:0,beatOn:true,bgSide:'a',pollT:0,pollP:0};
+let S={playing:false,tid:null,prog:0,dur:0,title:'',artist:'',album:'',art:'',bgSide:'a',pollT:0,pollP:0};
 
 /* ═══ CLOCK ═══ */
 const SLOTS=['h0','h1','m0','m1','s0','s1'];
@@ -542,7 +600,7 @@ function tick(){
   const s=now.getSeconds().toString().padStart(2,'0');
   [h[0],h[1],m[0],m[1],s[0],s[1]].forEach((v,i)=>setDigit(SLOTS[i],v));
   $('#cd').textContent=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-  $('#tclk').textContent=`${h}:${m}`;
+  $('#tclk').textContent=`${h}:${m}:${s}`;
 }
 setInterval(tick,1000); tick();
 
@@ -556,36 +614,19 @@ function setBg(url){
   S.bgSide=nx;
 }
 
-/* ═══ BEAT ═══ */
-let beatId=null;
-function startBeat(bpm){
-  stopBeat(); if(!S.beatOn)return; if(!bpm||bpm<40)bpm=120; S.bpm=bpm;
-  const ms=60000/bpm, el=$('#bgP');
-  function f(now){
-    if(!S.playing||!S.beatOn){el.style.opacity='0';beatId=requestAnimationFrame(f);return}
-    el.style.opacity=Math.max(0,Math.sin(((now%ms)/ms)*Math.PI*2))*.8;
-    beatId=requestAnimationFrame(f);
-  }
-  beatId=requestAnimationFrame(f);
-}
-function stopBeat(){if(beatId){cancelAnimationFrame(beatId);beatId=null;$('#bgP').style.opacity='0'}}
-async function getBpm(id){const d=await api('/audio-features/'+id);return d?.tempo||0}
-
 /* ═══ WAVEFORM ═══ */
 function buildWaveform(){
   const el=$('#wf'); el.innerHTML='';
-  for(let i=0;i<58;i++){
+  for(let i=0;i<60;i++){
     const b=document.createElement('div');
     b.className='wb';
-    b.style.height=(14+Math.random()*86)+'%';
-    b.style.setProperty('--d',(0.28+Math.random()*0.55).toFixed(2)+'s');
-    b.style.animationDelay=(Math.random()*0.7).toFixed(2)+'s';
+    b.style.height=(12+Math.random()*88)+'%';
     el.appendChild(b);
   }
 }
 function updateWaveform(){
   const pct=S.dur?S.prog/S.dur:0;
-  const bars=$$('.wb'); const n=bars.length;
+  const bars=$$('.wb'), n=bars.length;
   bars.forEach((b,i)=>b.classList.toggle('done',i/n<pct));
   $('#btime').textContent=`${fmt(S.prog)} / ${fmt(S.dur)}`;
 }
@@ -623,6 +664,8 @@ function render(){
   $('#rtitle').textContent=S.title||'--';
   $('#rartist').textContent=S.artist||'--';
   $('#ralbum').textContent=S.album||'';
+  $('#vi-title').textContent=S.title||'--';
+  $('#vi-artist').textContent=S.artist||'--';
   playIcon();
 }
 function playIcon(){
@@ -656,18 +699,17 @@ async function transition(d){
   const seen=new Set([S.art]);
   const dedup=arr=>arr.filter(c=>{if(!c.art||seen.has(c.art))return false;seen.add(c.art);return true});
   const right=dedup((q?.queue||[]).slice(0,5).map(t=>({
-    name:t.name, artist:(t.artists||[]).map(a=>a.name).join(', '),
+    name:t.name,artist:(t.artists||[]).map(a=>a.name).join(', '),
     art:t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||'',
-    dur:t.duration_ms||0, cur:false
+    dur:t.duration_ms||0,cur:false
   })));
   const left=dedup((rc?.items||[]).slice(0,3).reverse().map(it=>({
-    name:it.track.name, artist:(it.track.artists||[]).map(a=>a.name).join(', '),
+    name:it.track.name,artist:(it.track.artists||[]).map(a=>a.name).join(', '),
     art:it.track.album?.images?.[1]?.url||it.track.album?.images?.[0]?.url||'',
-    dur:it.track.duration_ms||0, cur:false
+    dur:it.track.duration_ms||0,cur:false
   })));
   renderTracks([...left,cur,...right]);
   render();
-  startBeat(await getBpm(S.tid));
   await sleep(160); vl.classList.remove('on');
 }
 
@@ -690,14 +732,12 @@ async function poll(){
     } else {
       S.prog=d.progress_ms||0; S.dur=d.item.duration_ms||0;
       playIcon();
-      if(!S.playing)stopBeat();
-      else if(!beatId&&S.bpm&&S.beatOn)startBeat(S.bpm);
     }
     startProg();
   } else {
     S.playing=false; S.tid=null;
     $('#app').classList.remove('playing');
-    goIdle(); stopBeat(); stopProg();
+    goIdle(); stopProg();
   }
 }
 
@@ -710,21 +750,16 @@ function goIdle(){
 
 /* ═══ CONTROLS ═══ */
 $('#bPlay').onclick=async()=>{
-  if(S.playing){await cmd('PUT','/me/player/pause');S.playing=false;stopBeat()}
-  else{await cmd('PUT','/me/player/play');S.playing=true;if(S.bpm&&S.beatOn)startBeat(S.bpm)}
+  if(S.playing){await cmd('PUT','/me/player/pause');S.playing=false}
+  else{await cmd('PUT','/me/player/play');S.playing=true}
   S.pollT=Date.now();S.pollP=S.prog;playIcon();
 };
 $('#bNext').onclick=async()=>{await cmd('POST','/me/player/next');setTimeout(poll,500)};
 $('#bPrev').onclick=async()=>{await cmd('POST','/me/player/previous');setTimeout(poll,500)};
-$('#beatBtn').onclick=()=>{
-  S.beatOn=!S.beatOn;
-  document.body.classList.toggle('beat-off',!S.beatOn);
-  if(!S.beatOn)stopBeat(); else if(S.playing&&S.bpm)startBeat(S.bpm);
-};
 $('#discBtn').onclick=()=>{clearAuth();goAuth()};
 
 /* ═══ AUTH FLOW ═══ */
-function goAuth(){if(pollId)clearInterval(pollId);stopBeat();stopProg();$('#auth').classList.remove('out');goIdle()}
+function goAuth(){if(pollId)clearInterval(pollId);stopProg();$('#auth').classList.remove('out');goIdle()}
 function goMain(){$('#auth').classList.add('out');poll();pollId=setInterval(poll,3500)}
 $('#authBtn').onclick=doAuth;
 
