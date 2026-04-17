@@ -311,18 +311,7 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 .cbtn.sm svg{width:20px;height:20px}
 .cbtn.lg svg{width:28px;height:28px}
 
-/* Waveform — static bars, no bounce animation, just color = progress */
-#wf{
-  width:100%;max-width:480px;height:28px;
-  display:flex;align-items:center;gap:1.5px;
-  cursor:pointer;
-}
-.wb{
-  flex:1;min-width:0;border-radius:2px;
-  background:rgba(255,255,255,.1);
-  transition:background .15s;
-}
-.wb.done{background:rgba(255,255,255,.72)}
+/* progress shown as time only */
 
 .bright{width:var(--rightW);flex-shrink:0;display:flex;justify-content:flex-end;align-items:center}
 .btime{font-family:var(--fd);font-size:10.5px;color:rgba(255,255,255,.22);letter-spacing:.3px}
@@ -500,11 +489,9 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
           <button class="cbtn lg" id="bPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
           <button class="cbtn sm" id="bNext"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
         </div>
-        <div id="wf"></div>
-      </div>
-      <div class="bright">
         <div class="btime" id="btime">0:00 / 0:00</div>
       </div>
+      <div class="bright"></div>
     </div>
 
   </div>
@@ -614,23 +601,10 @@ function setBg(url){
   S.bgSide=nx;
 }
 
-/* ═══ WAVEFORM ═══ */
-function buildWaveform(){
-  const el=$('#wf'); el.innerHTML='';
-  for(let i=0;i<60;i++){
-    const b=document.createElement('div');
-    b.className='wb';
-    b.style.height=(12+Math.random()*88)+'%';
-    el.appendChild(b);
-  }
-}
+/* ═══ PROGRESS TIME ═══ */
 function updateWaveform(){
-  const pct=S.dur?S.prog/S.dur:0;
-  const bars=$$('.wb'), n=bars.length;
-  bars.forEach((b,i)=>b.classList.toggle('done',i/n<pct));
   $('#btime').textContent=`${fmt(S.prog)} / ${fmt(S.dur)}`;
 }
-buildWaveform();
 
 /* ═══ TRACK LIST ═══ */
 function renderTracks(list){
@@ -693,7 +667,6 @@ async function transition(d){
   S.art=d.art; S.prog=d.prog; S.dur=d.dur; S.playing=d.playing;
   S.pollT=Date.now(); S.pollP=d.prog;
   setBg(S.art);
-  buildWaveform();
   const [q,rc]=await Promise.all([api('/me/player/queue'),api('/me/player/recently-played?limit=5')]);
   const cur={name:S.title,artist:S.artist,art:S.art,dur:S.dur,cur:true};
   const seen=new Set([S.art]);
