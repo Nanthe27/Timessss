@@ -289,8 +289,7 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   background:rgba(0,0,0,.55);
   backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
   border-top:1px solid var(--border);
-  display:flex;align-items:center;gap:16px;
-  padding-left:18px;padding-right:18px;
+  display:flex;align-items:center;justify-content:center;
   flex-shrink:0;z-index:20;position:relative;
 }
 .bleft{display:flex;align-items:center;gap:10px;width:var(--sideW);flex-shrink:0;min-width:0}
@@ -300,21 +299,17 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 .btitle{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bartist{font-size:10px;font-family:var(--fm);color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.bcenter{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.bcenter{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
 .bbtns{display:flex;align-items:center;gap:8px}
 .cbtn{
-  background:rgba(255,255,255,.12);
-  border:none;color:#fff;cursor:pointer;
-  border-radius:18px;
+  background:none;border:none;color:#fff;cursor:pointer;
+  border-radius:50%;padding:10px;
   display:flex;align-items:center;justify-content:center;
-  transition:transform .15s,background .15s;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:transform .15s,opacity .15s;
 }
-.cbtn:active{transform:scale(.88);background:rgba(255,255,255,.22)}
-.cbtn.sm{width:54px;height:44px}
-.cbtn.sm svg{width:22px;height:22px}
-.cbtn.lg{width:64px;height:44px}
-.cbtn.lg svg{width:26px;height:26px}
+.cbtn:active{transform:scale(.85);opacity:.6}
+.cbtn.sm svg{width:24px;height:24px}
+.cbtn.lg svg{width:30px;height:30px}
 
 /* progress shown as time only */
 
