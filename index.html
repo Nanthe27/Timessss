@@ -143,7 +143,7 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   border-radius:50px;padding:0 14px;height:30px;
   display:flex;align-items:center;
   font-family:var(--fm);font-size:11px;
-  transition:background .18s;flex-shrink:0;
+  transition:background .18s,opacity .4s;flex-shrink:0;
 }
 .tbt:active{background:rgba(255,255,255,.14)}
 
@@ -796,6 +796,20 @@ $('#bPlay').onclick=async()=>{
 $('#bNext').onclick=async()=>{await cmd('POST','/me/player/next');setTimeout(poll,500)};
 $('#bPrev').onclick=async()=>{await cmd('POST','/me/player/previous');setTimeout(poll,500)};
 $('#discBtn').onclick=()=>{clearAuth();goAuth()};
+
+/* Auto-hide disconnect after 3s, show on any interaction */
+let discTimer=null;
+function showDisc(){
+  $('#discBtn').style.opacity='1';
+  $('#discBtn').style.pointerEvents='auto';
+  clearTimeout(discTimer);
+  discTimer=setTimeout(()=>{
+    $('#discBtn').style.opacity='0';
+    $('#discBtn').style.pointerEvents='none';
+  },3000);
+}
+['mousemove','touchstart','click','keydown'].forEach(ev=>document.addEventListener(ev,showDisc,{passive:true}));
+showDisc();
 
 /* ═══ AUTH FLOW ═══ */
 function goAuth(){if(pollId)clearInterval(pollId);stopProg();$('#auth').classList.remove('out');goIdle()}
