@@ -336,10 +336,10 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   /* vcenter: fills main, overflow allowed for large vinyl */
   #vcenter{overflow:visible;padding:0;gap:0}
 
-  /* Vinyl: large, offset to right, vertically centered */
+  /* Vinyl: half off-screen to the right */
   #vwrap{
     position:absolute;
-    right:-18%;
+    right:-46vw;
     top:50%;
     transform:translateY(-50%);
     width:min(92vw,540px);
@@ -353,23 +353,25 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
     align-items:flex-start;
     text-align:left;
     position:absolute;
-    top:16%;
+    top:8%;
     left:6%;
     z-index:15;
     max-width:56%;
     pointer-events:none;
     gap:6px;
   }
-  /* Artist name: big primary */
-  .vi-artist{
+  /* Song title: big bold primary */
+  .vi-title{
     font-size:clamp(26px,8vw,46px);
     font-weight:700;
     line-height:1.1;
     color:#fff;
+    font-style:normal;
+    font-family:var(--fn);
     order:-1;
   }
-  /* Track title: small italic secondary */
-  .vi-title{
+  /* Artist name: small italic secondary */
+  .vi-artist{
     font-size:clamp(13px,3.8vw,20px);
     font-family:var(--fm);
     font-style:italic;
@@ -390,7 +392,7 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
     border:1px solid rgba(255,255,255,.1);
     border-top:1px solid rgba(255,255,255,.1);
     border-radius:60px;
-    padding:28px 16px;
+    padding:24px 11px;
     flex-direction:column;
     align-items:center;
     justify-content:center;
@@ -417,6 +419,11 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
     margin-top:10px;
     letter-spacing:.3px;
   }
+}
+
+/* Bigger album label in portrait */
+@media (orientation:portrait),(max-aspect-ratio:2/3){
+  .vlabel{width:44%;height:44%}
 }
 
 /* Extra-tall portrait (big vertical TV / monitor) */
