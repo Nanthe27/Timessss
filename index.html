@@ -1061,9 +1061,8 @@ window.onSpotifyWebPlaybackSDKReady=()=>{
     volume:0.8
   });
   window._spotifyPlayer=player;
-  player.addListener('ready',async({device_id})=>{
+  player.addListener('ready',({device_id})=>{
     sdkDeviceId=device_id;
-    await transferToSDK(false);
   });
   player.addListener('not_ready',()=>{sdkDeviceId=null});
   player.addListener('account_error',()=>showToast('Spotify Premium required for in-browser playback'));
