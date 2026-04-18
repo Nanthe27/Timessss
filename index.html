@@ -575,6 +575,30 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 @media (orientation:portrait),(max-aspect-ratio:2/3){
   #toast{bottom:calc(100px + var(--safe-b))}
 }
+/* ── HAMBURGER MENU ── */
+#hMenu{
+  position:fixed;top:calc(var(--topH) + var(--safe-t) + 6px);right:18px;
+  z-index:165;background:rgba(16,16,16,.97);
+  border:1px solid var(--border);border-radius:14px;overflow:hidden;
+  min-width:190px;
+  opacity:0;pointer-events:none;
+  transition:opacity .18s,transform .18s;
+  transform:translateY(-6px);
+}
+#hMenu.on{opacity:1;pointer-events:auto;transform:translateY(0)}
+.hm-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  transition:background .15s;
+}
+.hm-item:last-child{border-bottom:none}
+.hm-item:hover{background:rgba(255,255,255,.05)}
+.hm-label{font-family:var(--fm);font-size:13px}
+.hm-badge{font-size:10px;font-weight:700;letter-spacing:.4px;font-family:var(--fm)}
+.hm-badge.on{color:#1DB954}
+.hm-badge.off{color:var(--dim2)}
+.hm-sep{height:1px;background:var(--border)}
 </style>
 </head>
 <body>
@@ -623,7 +647,7 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
       <div class="tact">
         <button class="tbt" id="srBtn">Search</button>
         <button class="tbt" id="devBtn">Devices</button>
-        <button class="tbt" id="discBtn">Disconnect</button>
+        <button class="tbt" id="menuBtn">&#9776;</button>
       </div>
     </div>
 
@@ -677,6 +701,18 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
     </div>
 
   </div>
+  <!-- Hamburger Menu -->
+  <div id="hMenu">
+    <div class="hm-item" id="hClockItem">
+      <span class="hm-label">Clock</span>
+      <span class="hm-badge on" id="hClockBadge">ON</span>
+    </div>
+    <div class="hm-sep"></div>
+    <div class="hm-item" id="hDiscItem">
+      <span class="hm-label" style="color:rgba(255,100,100,.75)">Disconnect</span>
+    </div>
+  </div>
+
   <!-- Device Picker -->
   <div id="devPanel">
     <div class="dev-head">Play On</div>
@@ -838,21 +874,18 @@ function updateWaveform(){
 /* ═══ QUEUE REFRESH ═══ */
 async function refreshQueue(){
   if(!S.tid)return;
-  const [q,rc]=await Promise.all([api('/me/player/queue'),api('/me/player/recently-played?limit=5')]);
+  const q=await api('/me/player/queue');
   const cur={name:S.title,artist:S.artist,art:S.art,dur:S.dur,cur:true};
   const seen=new Set([S.art]);
-  const dedup=arr=>arr.filter(c=>{if(!c.art||seen.has(c.art))return false;seen.add(c.art);return true});
-  const right=dedup((q?.queue||[]).slice(0,5).map(t=>({
+  const upcoming=(q?.queue||[]).filter(t=>{
+    const art=t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||'';
+    if(!art||seen.has(art))return false;seen.add(art);return true;
+  }).slice(0,9).map(t=>({
     name:t.name,artist:(t.artists||[]).map(a=>a.name).join(', '),
     art:t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||'',
     dur:t.duration_ms||0,cur:false
-  })));
-  const left=dedup((rc?.items||[]).slice(0,3).reverse().map(it=>({
-    name:it.track.name,artist:(it.track.artists||[]).map(a=>a.name).join(', '),
-    art:it.track.album?.images?.[1]?.url||it.track.album?.images?.[0]?.url||'',
-    dur:it.track.duration_ms||0,cur:false
-  })));
-  renderTracks([...left,cur,...right]);
+  }));
+  renderTracks([cur,...upcoming]);
 }
 
 /* ═══ TRACK LIST ═══ */
@@ -961,15 +994,28 @@ $('#bPlay').onclick=async()=>{
 };
 $('#bNext').onclick=async()=>{await cmd('POST','/me/player/next');setTimeout(poll,500);setTimeout(refreshQueue,1200)};
 $('#bPrev').onclick=async()=>{await cmd('POST','/me/player/previous');setTimeout(poll,500);setTimeout(refreshQueue,1200)};
-$('#discBtn').onclick=()=>{clearAuth();goAuth()};
+/* ═══ HAMBURGER MENU ═══ */
+let hMenuOpen=false,clockOn=true;
+$('#menuBtn').onclick=e=>{e.stopPropagation();hMenuOpen?closeHMenu():openHMenu()};
+function openHMenu(){hMenuOpen=true;$('#hMenu').classList.add('on')}
+function closeHMenu(){hMenuOpen=false;$('#hMenu').classList.remove('on')}
+$('#hMenu').addEventListener('click',e=>e.stopPropagation());
+document.addEventListener('click',()=>{if(hMenuOpen)closeHMenu()});
+$('#hDiscItem').onclick=()=>{closeHMenu();clearAuth();goAuth()};
+$('#hClockItem').onclick=()=>{
+  clockOn=!clockOn;
+  $('#tclk').style.display=clockOn?'':'none';
+  $('#hClockBadge').textContent=clockOn?'ON':'OFF';
+  $('#hClockBadge').className='hm-badge '+(clockOn?'on':'off');
+};
 
 /* Auto-hide top buttons after 3s, show on any interaction */
 let discTimer=null;
 function showDisc(){
-  ['#discBtn','#srBtn','#devBtn'].forEach(id=>{$(id).style.opacity='1';$(id).style.pointerEvents='auto'});
+  ['#menuBtn','#srBtn','#devBtn'].forEach(id=>{$(id).style.opacity='1';$(id).style.pointerEvents='auto'});
   clearTimeout(discTimer);
   discTimer=setTimeout(()=>{
-    ['#discBtn','#srBtn','#devBtn'].forEach(id=>{$(id).style.opacity='0';$(id).style.pointerEvents='none'});
+    ['#menuBtn','#srBtn','#devBtn'].forEach(id=>{$(id).style.opacity='0';$(id).style.pointerEvents='none'});
   },3000);
 }
 ['mousemove','touchstart','click','keydown'].forEach(ev=>document.addEventListener(ev,showDisc,{passive:true}));
@@ -977,7 +1023,7 @@ showDisc();
 
 /* ═══ AUTH FLOW ═══ */
 function goAuth(){if(pollId)clearInterval(pollId);stopProg();$('#auth').classList.remove('out');goIdle()}
-function goMain(){$('#auth').classList.add('out');poll();pollId=setInterval(poll,3500);loadSpotifySDK()}
+function goMain(){$('#auth').classList.add('out');poll();pollId=setInterval(poll,3500)}
 $('#authBtn').onclick=doAuth;
 
 /* ═══ INIT ═══ */
@@ -1008,42 +1054,49 @@ async function loadDevices(){
   $('#devList').innerHTML='<div class="dev-msg">Loading…</div>';
   const d=await api('/me/player/devices');
   const list=d?.devices||[];
-  if(!list.length&&!sdkDeviceId){$('#devList').innerHTML='<div class="dev-msg">No devices found</div>';return}
   $('#devList').innerHTML='';
-  // Always show browser device at top if SDK is ready
-  if(sdkDeviceId){
-    const isCurrent=list.find(x=>x.id===sdkDeviceId);
-    if(!isCurrent){
-      const active=list.length===0; // active if it's the only device
-      $('#devList').appendChild(makeDeviceEl({id:sdkDeviceId,name:'Timessss',type:'This Browser',is_active:active}));
-    }
-  }
-  list.forEach(dev=>{$('#devList').appendChild(makeDeviceEl(dev))});
+  // Always show browser option at top
+  const browserActive=!!(sdkDeviceId&&list.find(x=>x.id===sdkDeviceId&&x.is_active));
+  const bDiv=document.createElement('div');
+  bDiv.className='dev-item'+(browserActive?' active':'');
+  bDiv.innerHTML=`<div style="flex:1;min-width:0">
+    <div class="dev-name">Timessss (This Browser)</div>
+    <div class="dev-type">${sdkDeviceId?'Browser':'Click to enable'}</div>
+  </div><div class="dev-dot"></div>`;
+  bDiv.onclick=()=>selectDevice('__browser__',true);
+  $('#devList').appendChild(bDiv);
+  list.filter(dev=>dev.id!==sdkDeviceId).forEach(dev=>{$('#devList').appendChild(makeDeviceEl(dev))});
+  if(!list.length&&!sdkDeviceId)$('#devList').insertAdjacentHTML('beforeend','<div class="dev-msg">No other devices found</div>');
 }
 
 function makeDeviceEl(dev){
-  const isBrowser=dev.id===sdkDeviceId;
   const div=document.createElement('div');
   div.className='dev-item'+(dev.is_active?' active':'');
   div.innerHTML=`<div style="flex:1;min-width:0">
-    <div class="dev-name">${esc(isBrowser?'Timessss (This Browser)':dev.name)}</div>
+    <div class="dev-name">${esc(dev.name)}</div>
     <div class="dev-type">${esc(dev.type||'Device')}</div>
   </div><div class="dev-dot"></div>`;
-  div.onclick=()=>selectDevice(dev.id,isBrowser);
+  div.onclick=()=>selectDevice(dev.id,false);
   return div;
 }
 
 async function selectDevice(deviceId,isBrowser){
   closeDevices();
   if(isBrowser){
+    if(!window._spotifyPlayer){
+      showToast('Connecting browser…');
+      loadSpotifySDK();
+      await new Promise(r=>{let n=0;const t=setInterval(()=>{if(sdkDeviceId||++n>20){clearInterval(t);r()}},500)});
+    }
+    if(!sdkDeviceId){showToast('Browser not ready — try again');return}
     if(window._spotifyPlayer) await window._spotifyPlayer.activateElement();
-    await transferToSDK(S.playing);
-    showToast('Playing on this browser');
+    await transferToSDK(false);
+    showToast('Browser active — press Play to start');
   } else {
-    await cmdJSON('PUT','/me/player',{device_ids:[deviceId],play:S.playing});
+    await cmdJSON('PUT','/me/player',{device_ids:[deviceId],play:false});
     showToast('Switched device');
   }
-  setTimeout(()=>{refreshQueue();poll()},1000);
+  setTimeout(()=>{poll()},800);
 }
 
 /* ═══ SPOTIFY WEB PLAYBACK SDK ═══ */
@@ -1068,6 +1121,15 @@ window.onSpotifyWebPlaybackSDKReady=()=>{
   player.addListener('account_error',()=>showToast('Spotify Premium required for in-browser playback'));
   player.addListener('authentication_error',async()=>{await doRefresh()});
   player.addListener('initialization_error',({message})=>console.warn('SDK:',message));
+  player.addListener('player_state_changed',state=>{
+    if(!state)return;
+    const sdkPlaying=!state.paused;
+    if(sdkPlaying!==S.playing){S.playing=sdkPlaying;playIcon();if(S.playing)startProg();else stopProg()}
+    if(state.track_window?.current_track){S.pollP=state.position;S.pollT=Date.now()}
+  });
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden&&window._spotifyPlayer&&sdkDeviceId)window._spotifyPlayer.activateElement();
+  });
   player.connect();
 };
 
