@@ -132,11 +132,19 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 }
 .tbrand{font-size:15px;font-weight:700;letter-spacing:-.2px;color:rgba(255,255,255,.9);flex-shrink:0}
 .tclk{
-  flex:1;text-align:center;
+  position:absolute;left:50%;top:0;bottom:0;
+  transform:translateX(-50%);
+  display:flex;align-items:center;
+  padding-top:var(--safe-t);
   font-family:var(--fd);font-size:18px;font-weight:300;
   letter-spacing:1px;color:rgba(255,255,255,.82);
+  pointer-events:none;white-space:nowrap;
 }
-.tact{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.tact{
+  position:absolute;right:18px;top:0;bottom:0;
+  padding-top:var(--safe-t);
+  display:flex;align-items:center;gap:6px;
+}
 .tbt{
   background:rgba(255,255,255,.07);border:1px solid var(--border);
   color:rgba(255,255,255,.55);cursor:pointer;
@@ -551,8 +559,6 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 }
 .sr-btn:hover{background:rgba(29,185,84,.26)}
 .sr-btn:disabled{opacity:.38;cursor:default;pointer-events:none}
-.sr-now{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.18);color:#fff}
-.sr-now:hover{background:rgba(255,255,255,.16)}
 .sr-btns{display:flex;gap:6px;flex-shrink:0}
 .sr-spin{
   width:16px;height:16px;
@@ -575,6 +581,18 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 @media (orientation:portrait),(max-aspect-ratio:2/3){
   #toast{bottom:calc(100px + var(--safe-b))}
 }
+/* ── QUEUE ANIMATIONS ── */
+@keyframes tiSlideLeft{
+  from{transform:translateX(0);opacity:1}
+  to  {transform:translateX(-120%);opacity:0}
+}
+@keyframes tiPushUp{
+  from{transform:translateY(0);opacity:1}
+  to  {transform:translateY(-18px);opacity:0}
+}
+.ti.clickable:hover{background:rgba(255,255,255,.065)}
+.ti.clickable:active{background:rgba(255,255,255,.11)}
+
 /* ── HAMBURGER MENU ── */
 #hMenu{
   position:fixed;top:calc(var(--topH) + var(--safe-t) + 6px);right:18px;
@@ -810,8 +828,7 @@ async function cmdJSON(method,path,body){
 }
 
 /* ═══ STATE ═══ */
-let S={playing:false,tid:null,prog:0,dur:0,title:'',artist:'',album:'',art:'',bgSide:'a',pollT:0,pollP:0};
-let sdkDeviceId=null;
+let S={playing:false,tid:null,uri:'',prog:0,dur:0,title:'',artist:'',album:'',art:'',bgSide:'a',pollT:0,pollP:0};
 
 /* ═══ CLOCK ═══ */
 const SLOTS=['h0','h1','m0','m1','s0','s1'];
@@ -875,7 +892,7 @@ function updateWaveform(){
 async function refreshQueue(){
   if(!S.tid)return;
   const q=await api('/me/player/queue');
-  const cur={name:S.title,artist:S.artist,art:S.art,dur:S.dur,cur:true};
+  const cur={name:S.title,artist:S.artist,art:S.art,dur:S.dur,uri:S.uri,cur:true};
   const seen=new Set([S.art]);
   const upcoming=(q?.queue||[]).filter(t=>{
     const art=t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||'';
@@ -883,7 +900,7 @@ async function refreshQueue(){
   }).slice(0,9).map(t=>({
     name:t.name,artist:(t.artists||[]).map(a=>a.name).join(', '),
     art:t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||'',
-    dur:t.duration_ms||0,cur:false
+    dur:t.duration_ms||0,uri:t.uri||'',cur:false
   }));
   renderTracks([cur,...upcoming]);
 }
@@ -893,7 +910,8 @@ function renderTracks(list){
   const el=$('#tracks'); el.innerHTML='';
   list.forEach((t,i)=>{
     const d=document.createElement('div');
-    d.className='ti'+(t.cur?' active':'');
+    const clickable=!t.cur&&t.uri;
+    d.className='ti'+(t.cur?' active':'')+(clickable?' clickable':'');
     d.innerHTML=`
       <div class="tibars"><div class="tib"></div><div class="tib"></div><div class="tib"></div></div>
       <div class="tinum">${String(i+1).padStart(2,'0')}</div>
@@ -904,9 +922,54 @@ function renderTracks(list){
       </div>
       ${t.dur?`<div class="tidur">${fmt(t.dur)}</div>`:''}
     `;
+    if(clickable)d.addEventListener('click',()=>playTrackFromQueue(t.uri));
     el.appendChild(d);
     if(t.cur)requestAnimationFrame(()=>d.scrollIntoView({block:'center',behavior:'smooth'}));
   });
+}
+
+/* ═══ QUEUE ANIMATION ═══ */
+function animateQueueExit(){
+  const items=[...$('#tracks').children];
+  items.forEach((item,i)=>{
+    if(item.classList.contains('active')){
+      // Current song: slide left
+      item.style.transition='transform 0.46s cubic-bezier(0.55,0,1,0.45), opacity 0.36s ease';
+      requestAnimationFrame(()=>{item.style.transform='translateX(-120%)';item.style.opacity='0'});
+    } else {
+      // Upcoming songs: push up, staggered
+      const delay=i*32;
+      item.style.transition=`transform 0.4s cubic-bezier(0.4,0,0.6,1) ${delay}ms, opacity 0.3s ease ${delay}ms`;
+      requestAnimationFrame(()=>{item.style.transform='translateY(-18px)';item.style.opacity='0'});
+    }
+  });
+}
+function prepareQueueEnter(){
+  [...$('#tracks').children].forEach(item=>{
+    item.style.opacity='0';
+    item.style.transform='translateY(16px)';
+    item.style.transition='none';
+  });
+}
+function animateQueueEnter(){
+  [...$('#tracks').children].forEach((item,i)=>{
+    setTimeout(()=>{
+      item.style.transition='transform 0.56s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.44s ease';
+      item.style.transform='translateY(0)';
+      item.style.opacity='1';
+    },i*60);
+  });
+}
+
+/* ═══ PLAY FROM QUEUE ═══ */
+async function playTrackFromQueue(uri){
+  if(!uri)return;
+  try{
+    let r=await cmdJSON('PUT','/me/player/play',{uris:[uri]});
+    if(r.status===401){await doRefresh();r=await cmdJSON('PUT','/me/player/play',{uris:[uri]})}
+    if(r.ok||r.status===204){setTimeout(poll,600)}
+    else if(r.status===404){showToast('Open Spotify on a device first')}
+  }catch(e){}
 }
 
 /* ═══ RENDER ═══ */
@@ -941,14 +1004,25 @@ function stopProg(){if(pRAF){cancelAnimationFrame(pRAF);pRAF=null}}
 
 /* ═══ TRANSITION ═══ */
 async function transition(d){
-  const vl=$('#veil'); vl.classList.add('on'); await sleep(340);
-  S.tid=d.id; S.title=d.title; S.artist=d.artist; S.album=d.album;
+  const vl=$('#veil');
+  // ① Queue exits while screen is still visible
+  animateQueueExit();
+  await sleep(220);
+  // ② Veil closes
+  vl.classList.add('on'); await sleep(340);
+  // ③ Update state (hidden behind veil)
+  S.tid=d.id; S.uri=d.uri||''; S.title=d.title; S.artist=d.artist; S.album=d.album;
   S.art=d.art; S.prog=d.prog; S.dur=d.dur; S.playing=d.playing;
   S.pollT=Date.now(); S.pollP=d.prog;
   setBg(S.art);
+  // ④ Render new queue silently, pre-position for entrance
   await refreshQueue();
+  prepareQueueEnter();
   render();
+  // ⑤ Veil lifts
   await sleep(160); vl.classList.remove('on');
+  // ⑥ Items cascade in
+  animateQueueEnter();
 }
 
 /* ═══ POLL ═══ */
@@ -960,7 +1034,7 @@ async function poll(){
     S.playing=d.is_playing; S.pollT=Date.now(); S.pollP=d.progress_ms||0;
     if(isNew){
       await transition({
-        id:d.item.id, title:d.item.name,
+        id:d.item.id, uri:d.item.uri||'', title:d.item.name,
         artist:(d.item.artists||[]).map(a=>a.name).join(', '),
         album:d.item.album?.name||'',
         art:d.item.album?.images?.[0]?.url||'',
@@ -1012,10 +1086,10 @@ $('#hClockItem').onclick=()=>{
 /* Auto-hide top buttons after 3s, show on any interaction */
 let discTimer=null;
 function showDisc(){
-  ['#menuBtn','#srBtn','#devBtn'].forEach(id=>{$(id).style.opacity='1';$(id).style.pointerEvents='auto'});
+  $('#menuBtn').style.opacity='1';$('#menuBtn').style.pointerEvents='auto';
   clearTimeout(discTimer);
   discTimer=setTimeout(()=>{
-    ['#menuBtn','#srBtn','#devBtn'].forEach(id=>{$(id).style.opacity='0';$(id).style.pointerEvents='none'});
+    $('#menuBtn').style.opacity='0';$('#menuBtn').style.pointerEvents='none';
   },3000);
 }
 ['mousemove','touchstart','click','keydown'].forEach(ev=>document.addEventListener(ev,showDisc,{passive:true}));
@@ -1054,19 +1128,9 @@ async function loadDevices(){
   $('#devList').innerHTML='<div class="dev-msg">Loading…</div>';
   const d=await api('/me/player/devices');
   const list=d?.devices||[];
+  if(!list.length){$('#devList').innerHTML='<div class="dev-msg">No devices found — open Spotify on a device</div>';return}
   $('#devList').innerHTML='';
-  // Always show browser option at top
-  const browserActive=!!(sdkDeviceId&&list.find(x=>x.id===sdkDeviceId&&x.is_active));
-  const bDiv=document.createElement('div');
-  bDiv.className='dev-item'+(browserActive?' active':'');
-  bDiv.innerHTML=`<div style="flex:1;min-width:0">
-    <div class="dev-name">Timessss (This Browser)</div>
-    <div class="dev-type">${sdkDeviceId?'Browser':'Click to enable'}</div>
-  </div><div class="dev-dot"></div>`;
-  bDiv.onclick=()=>selectDevice('__browser__',true);
-  $('#devList').appendChild(bDiv);
-  list.filter(dev=>dev.id!==sdkDeviceId).forEach(dev=>{$('#devList').appendChild(makeDeviceEl(dev))});
-  if(!list.length&&!sdkDeviceId)$('#devList').insertAdjacentHTML('beforeend','<div class="dev-msg">No other devices found</div>');
+  list.forEach(dev=>{$('#devList').appendChild(makeDeviceEl(dev))});
 }
 
 function makeDeviceEl(dev){
@@ -1076,67 +1140,17 @@ function makeDeviceEl(dev){
     <div class="dev-name">${esc(dev.name)}</div>
     <div class="dev-type">${esc(dev.type||'Device')}</div>
   </div><div class="dev-dot"></div>`;
-  div.onclick=()=>selectDevice(dev.id,false);
+  div.onclick=()=>selectDevice(dev.id);
   return div;
 }
 
-async function selectDevice(deviceId,isBrowser){
+async function selectDevice(deviceId){
   closeDevices();
-  if(isBrowser){
-    if(!window._spotifyPlayer){
-      showToast('Connecting browser…');
-      loadSpotifySDK();
-      await new Promise(r=>{let n=0;const t=setInterval(()=>{if(sdkDeviceId||++n>20){clearInterval(t);r()}},500)});
-    }
-    if(!sdkDeviceId){showToast('Browser not ready — try again');return}
-    if(window._spotifyPlayer) await window._spotifyPlayer.activateElement();
-    await transferToSDK(false);
-    showToast('Browser active — press Play to start');
-  } else {
-    await cmdJSON('PUT','/me/player',{device_ids:[deviceId],play:false});
-    showToast('Switched device');
-  }
-  setTimeout(()=>{poll()},800);
+  await cmdJSON('PUT','/me/player',{device_ids:[deviceId],play:false});
+  showToast('Switched device');
+  setTimeout(poll,800);
 }
 
-/* ═══ SPOTIFY WEB PLAYBACK SDK ═══ */
-function loadSpotifySDK(){
-  if(document.getElementById('spotify-sdk'))return;
-  const s=document.createElement('script');
-  s.id='spotify-sdk';s.src='https://sdk.scdn.co/spotify-player.js';
-  document.body.appendChild(s);
-}
-
-window.onSpotifyWebPlaybackSDKReady=()=>{
-  const player=new Spotify.Player({
-    name:'Timessss',
-    getOAuthToken:async cb=>{if(expired())await doRefresh();cb(token())},
-    volume:0.8
-  });
-  window._spotifyPlayer=player;
-  player.addListener('ready',({device_id})=>{
-    sdkDeviceId=device_id;
-  });
-  player.addListener('not_ready',()=>{sdkDeviceId=null});
-  player.addListener('account_error',()=>showToast('Spotify Premium required for in-browser playback'));
-  player.addListener('authentication_error',async()=>{await doRefresh()});
-  player.addListener('initialization_error',({message})=>console.warn('SDK:',message));
-  player.addListener('player_state_changed',state=>{
-    if(!state)return;
-    const sdkPlaying=!state.paused;
-    if(sdkPlaying!==S.playing){S.playing=sdkPlaying;playIcon();if(S.playing)startProg();else stopProg()}
-    if(state.track_window?.current_track){S.pollP=state.position;S.pollT=Date.now()}
-  });
-  document.addEventListener('visibilitychange',()=>{
-    if(!document.hidden&&window._spotifyPlayer&&sdkDeviceId)window._spotifyPlayer.activateElement();
-  });
-  player.connect();
-};
-
-async function transferToSDK(play=false){
-  if(!sdkDeviceId)return;
-  await cmdJSON('PUT','/me/player',{device_ids:[sdkDeviceId],play});
-}
 
 /* ═══ SEARCH + QUEUE ═══ */
 function showToast(msg){
@@ -1184,37 +1198,14 @@ async function doSearch(q){
         <div class="sr-artist">${esc(artists)}</div>
       </div>
       <div class="sr-btns">
-        <button class="sr-btn sr-now">Play Now</button>
-        <button class="sr-btn">Play Next</button>
+        <button class="sr-btn sr-pn">Play Next</button>
+        <button class="sr-btn sr-aq" style="background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.18);color:#fff">Add to Queue</button>
       </div>
     `;
-    div.querySelector('.sr-now').onclick=()=>playNow(t.uri,div.querySelector('.sr-now'));
-    div.querySelector('.sr-btn:not(.sr-now)').onclick=()=>addToQueue(t.uri,div.querySelector('.sr-btn:not(.sr-now)'));
+    div.querySelector('.sr-pn').onclick=()=>addToQueue(t.uri,div.querySelector('.sr-pn'));
+    div.querySelector('.sr-aq').onclick=()=>addToQueue(t.uri,div.querySelector('.sr-aq'));
     $('#srList').appendChild(div);
   });
-}
-
-async function playNow(uri,btn){
-  if(btn.disabled)return;
-  btn.disabled=true;
-  if(window._spotifyPlayer) await window._spotifyPlayer.activateElement();
-  if(sdkDeviceId) await transferToSDK(false);
-  const path='/me/player/play'+(sdkDeviceId?`?device_id=${sdkDeviceId}`:'');
-  try{
-    let r=await cmdJSON('PUT',path,{uris:[uri]});
-    if(r.status===401){await doRefresh();r=await cmdJSON('PUT',path,{uris:[uri]})}
-    if(r.ok||r.status===204){
-      showToast('Playing now');
-      setTimeout(()=>{btn.disabled=false;poll()},800);
-    } else if(r.status===403){showToast('Spotify Premium required');btn.disabled=false}
-    else if(r.status===404){
-      showToast('Retrying…');
-      if(sdkDeviceId){await transferToSDK(false);await sleep(600);r=await cmdJSON('PUT',path,{uris:[uri]});
-        if(r.ok||r.status===204){showToast('Playing now');setTimeout(()=>{btn.disabled=false;poll()},800)}
-        else{showToast('Could not start playback');btn.disabled=false}}
-      else{showToast('No active device');btn.disabled=false}
-    } else{showToast('Failed to play');btn.disabled=false}
-  }catch(e){showToast('Network error');btn.disabled=false}
 }
 
 async function addToQueue(uri,btn){
@@ -1224,10 +1215,7 @@ async function addToQueue(uri,btn){
   const devs=await api('/me/player/devices');
   if(!devs){showToast('Could not reach Spotify');btn.disabled=false;return}
   const active=(devs.devices||[]).find(d=>d.is_active);
-  if(!active){
-    if(sdkDeviceId){await transferToSDK(false)}
-    else{showToast('Open Spotify on a device to enable playback');btn.disabled=false;return}
-  }
+  if(!active){showToast('Open Spotify on a device first');btn.disabled=false;return}
   try{
     let r=await cmd('POST',`/me/player/queue?uri=${encodeURIComponent(uri)}`);
     if(r.status===401){await doRefresh();r=await cmd('POST',`/me/player/queue?uri=${encodeURIComponent(uri)}`)}
