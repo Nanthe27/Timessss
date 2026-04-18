@@ -447,6 +447,37 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   .bright{width:auto}
 }
 
+/* ── DEVICE PICKER ── */
+#devPanel{
+  position:fixed;top:calc(var(--topH) + var(--safe-t) + 6px);right:18px;
+  z-index:160;background:rgba(16,16,16,.97);
+  border:1px solid var(--border);border-radius:14px;overflow:hidden;
+  min-width:230px;
+  opacity:0;pointer-events:none;
+  transition:opacity .18s,transform .18s;
+  transform:translateY(-6px);
+}
+#devPanel.on{opacity:1;pointer-events:auto;transform:translateY(0)}
+.dev-head{
+  padding:10px 14px 8px;
+  font-size:9px;font-weight:700;letter-spacing:1.6px;color:var(--dim2);
+  text-transform:uppercase;border-bottom:1px solid var(--border);
+}
+.dev-item{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;cursor:pointer;
+  transition:background .15s;
+  border-bottom:1px solid rgba(255,255,255,.03);
+}
+.dev-item:last-child{border-bottom:none}
+.dev-item:hover{background:rgba(255,255,255,.05)}
+.dev-item.active{background:rgba(29,185,84,.07)}
+.dev-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dev-type{font-size:10px;font-family:var(--fm);color:var(--dim);margin-top:1px}
+.dev-dot{width:7px;height:7px;border-radius:50%;background:#1DB954;flex-shrink:0;opacity:0}
+.dev-item.active .dev-dot{opacity:1}
+.dev-msg{padding:13px 14px;font-size:11px;color:var(--dim2);font-family:var(--fm)}
+
 /* ── SEARCH PANEL ── */
 #srPanel{
   position:fixed;inset:0;z-index:150;
@@ -591,6 +622,7 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
       <div class="tclk" id="tclk">--:--:--</div>
       <div class="tact">
         <button class="tbt" id="srBtn">Search</button>
+        <button class="tbt" id="devBtn">Devices</button>
         <button class="tbt" id="discBtn">Disconnect</button>
       </div>
     </div>
@@ -645,6 +677,12 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
     </div>
 
   </div>
+  <!-- Device Picker -->
+  <div id="devPanel">
+    <div class="dev-head">Play On</div>
+    <div id="devList"></div>
+  </div>
+
   <!-- Search Panel -->
   <div id="srPanel">
     <div id="srBox">
@@ -928,10 +966,10 @@ $('#discBtn').onclick=()=>{clearAuth();goAuth()};
 /* Auto-hide top buttons after 3s, show on any interaction */
 let discTimer=null;
 function showDisc(){
-  ['#discBtn','#srBtn'].forEach(id=>{$(id).style.opacity='1';$(id).style.pointerEvents='auto'});
+  ['#discBtn','#srBtn','#devBtn'].forEach(id=>{$(id).style.opacity='1';$(id).style.pointerEvents='auto'});
   clearTimeout(discTimer);
   discTimer=setTimeout(()=>{
-    ['#discBtn','#srBtn'].forEach(id=>{$(id).style.opacity='0';$(id).style.pointerEvents='none'});
+    ['#discBtn','#srBtn','#devBtn'].forEach(id=>{$(id).style.opacity='0';$(id).style.pointerEvents='none'});
   },3000);
 }
 ['mousemove','touchstart','click','keydown'].forEach(ev=>document.addEventListener(ev,showDisc,{passive:true}));
@@ -954,6 +992,60 @@ $('#authBtn').onclick=doAuth;
 
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 
+/* ═══ DEVICE PICKER ═══ */
+let devOpen=false;
+function openDevices(){
+  devOpen=true;$('#devPanel').classList.add('on');loadDevices();
+}
+function closeDevices(){
+  devOpen=false;$('#devPanel').classList.remove('on');
+}
+$('#devBtn').onclick=e=>{e.stopPropagation();devOpen?closeDevices():openDevices()};
+document.addEventListener('click',()=>{if(devOpen)closeDevices()});
+$('#devPanel').addEventListener('click',e=>e.stopPropagation());
+
+async function loadDevices(){
+  $('#devList').innerHTML='<div class="dev-msg">Loading…</div>';
+  const d=await api('/me/player/devices');
+  const list=d?.devices||[];
+  if(!list.length&&!sdkDeviceId){$('#devList').innerHTML='<div class="dev-msg">No devices found</div>';return}
+  $('#devList').innerHTML='';
+  // Always show browser device at top if SDK is ready
+  if(sdkDeviceId){
+    const isCurrent=list.find(x=>x.id===sdkDeviceId);
+    if(!isCurrent){
+      const active=list.length===0; // active if it's the only device
+      $('#devList').appendChild(makeDeviceEl({id:sdkDeviceId,name:'Timessss',type:'This Browser',is_active:active}));
+    }
+  }
+  list.forEach(dev=>{$('#devList').appendChild(makeDeviceEl(dev))});
+}
+
+function makeDeviceEl(dev){
+  const isBrowser=dev.id===sdkDeviceId;
+  const div=document.createElement('div');
+  div.className='dev-item'+(dev.is_active?' active':'');
+  div.innerHTML=`<div style="flex:1;min-width:0">
+    <div class="dev-name">${esc(isBrowser?'Timessss (This Browser)':dev.name)}</div>
+    <div class="dev-type">${esc(dev.type||'Device')}</div>
+  </div><div class="dev-dot"></div>`;
+  div.onclick=()=>selectDevice(dev.id,isBrowser);
+  return div;
+}
+
+async function selectDevice(deviceId,isBrowser){
+  closeDevices();
+  if(isBrowser){
+    if(window._spotifyPlayer) await window._spotifyPlayer.activateElement();
+    await transferToSDK(S.playing);
+    showToast('Playing on this browser');
+  } else {
+    await cmdJSON('PUT','/me/player',{device_ids:[deviceId],play:S.playing});
+    showToast('Switched device');
+  }
+  setTimeout(()=>{refreshQueue();poll()},1000);
+}
+
 /* ═══ SPOTIFY WEB PLAYBACK SDK ═══ */
 function loadSpotifySDK(){
   if(document.getElementById('spotify-sdk'))return;
@@ -968,6 +1060,7 @@ window.onSpotifyWebPlaybackSDKReady=()=>{
     getOAuthToken:async cb=>{if(expired())await doRefresh();cb(token())},
     volume:0.8
   });
+  window._spotifyPlayer=player;
   player.addListener('ready',async({device_id})=>{
     sdkDeviceId=device_id;
     await transferToSDK(false);
@@ -1043,6 +1136,7 @@ async function doSearch(q){
 async function playNow(uri,btn){
   if(btn.disabled)return;
   btn.disabled=true;
+  if(window._spotifyPlayer) await window._spotifyPlayer.activateElement();
   if(sdkDeviceId) await transferToSDK(false);
   const path='/me/player/play'+(sdkDeviceId?`?device_id=${sdkDeviceId}`:'');
   try{
