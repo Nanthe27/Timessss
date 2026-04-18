@@ -787,6 +787,26 @@ function updateWaveform(){
   $('#btime').textContent=`${fmt(S.prog)} / ${fmt(S.dur)}`;
 }
 
+/* ═══ QUEUE REFRESH ═══ */
+async function refreshQueue(){
+  if(!S.tid)return;
+  const [q,rc]=await Promise.all([api('/me/player/queue'),api('/me/player/recently-played?limit=5')]);
+  const cur={name:S.title,artist:S.artist,art:S.art,dur:S.dur,cur:true};
+  const seen=new Set([S.art]);
+  const dedup=arr=>arr.filter(c=>{if(!c.art||seen.has(c.art))return false;seen.add(c.art);return true});
+  const right=dedup((q?.queue||[]).slice(0,5).map(t=>({
+    name:t.name,artist:(t.artists||[]).map(a=>a.name).join(', '),
+    art:t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||'',
+    dur:t.duration_ms||0,cur:false
+  })));
+  const left=dedup((rc?.items||[]).slice(0,3).reverse().map(it=>({
+    name:it.track.name,artist:(it.track.artists||[]).map(a=>a.name).join(', '),
+    art:it.track.album?.images?.[1]?.url||it.track.album?.images?.[0]?.url||'',
+    dur:it.track.duration_ms||0,cur:false
+  })));
+  renderTracks([...left,cur,...right]);
+}
+
 /* ═══ TRACK LIST ═══ */
 function renderTracks(list){
   const el=$('#tracks'); el.innerHTML='';
@@ -845,21 +865,7 @@ async function transition(d){
   S.art=d.art; S.prog=d.prog; S.dur=d.dur; S.playing=d.playing;
   S.pollT=Date.now(); S.pollP=d.prog;
   setBg(S.art);
-  const [q,rc]=await Promise.all([api('/me/player/queue'),api('/me/player/recently-played?limit=5')]);
-  const cur={name:S.title,artist:S.artist,art:S.art,dur:S.dur,cur:true};
-  const seen=new Set([S.art]);
-  const dedup=arr=>arr.filter(c=>{if(!c.art||seen.has(c.art))return false;seen.add(c.art);return true});
-  const right=dedup((q?.queue||[]).slice(0,5).map(t=>({
-    name:t.name,artist:(t.artists||[]).map(a=>a.name).join(', '),
-    art:t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||'',
-    dur:t.duration_ms||0,cur:false
-  })));
-  const left=dedup((rc?.items||[]).slice(0,3).reverse().map(it=>({
-    name:it.track.name,artist:(it.track.artists||[]).map(a=>a.name).join(', '),
-    art:it.track.album?.images?.[1]?.url||it.track.album?.images?.[0]?.url||'',
-    dur:it.track.duration_ms||0,cur:false
-  })));
-  renderTracks([...left,cur,...right]);
+  await refreshQueue();
   render();
   await sleep(160); vl.classList.remove('on');
 }
@@ -905,8 +911,8 @@ $('#bPlay').onclick=async()=>{
   else{await cmd('PUT','/me/player/play');S.playing=true}
   S.pollT=Date.now();S.pollP=S.prog;playIcon();
 };
-$('#bNext').onclick=async()=>{await cmd('POST','/me/player/next');setTimeout(poll,500)};
-$('#bPrev').onclick=async()=>{await cmd('POST','/me/player/previous');setTimeout(poll,500)};
+$('#bNext').onclick=async()=>{await cmd('POST','/me/player/next');setTimeout(poll,500);setTimeout(refreshQueue,1200)};
+$('#bPrev').onclick=async()=>{await cmd('POST','/me/player/previous');setTimeout(poll,500);setTimeout(refreshQueue,1200)};
 $('#discBtn').onclick=()=>{clearAuth();goAuth()};
 
 /* Auto-hide top buttons after 3s, show on any interaction */
@@ -1006,7 +1012,7 @@ async function addToQueue(uri,btn){
     if(r.status===401){await doRefresh();r=await cmd('POST',`/me/player/queue?uri=${encodeURIComponent(uri)}`)}
     if(r.ok||r.status===204||r.status===200){
       showToast('Added to queue');
-      setTimeout(()=>{btn.disabled=false},1600);
+      setTimeout(()=>{btn.disabled=false;refreshQueue()},1600);
     } else if(r.status===403){
       showToast('Spotify Premium required');btn.disabled=false;
     } else if(r.status===404){
