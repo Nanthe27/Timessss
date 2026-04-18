@@ -590,8 +590,6 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   from{transform:translateY(0);opacity:1}
   to  {transform:translateY(-18px);opacity:0}
 }
-.ti.clickable:hover{background:rgba(255,255,255,.065)}
-.ti.clickable:active{background:rgba(255,255,255,.11)}
 
 /* ── HAMBURGER MENU ── */
 #hMenu{
@@ -910,8 +908,7 @@ function renderTracks(list){
   const el=$('#tracks'); el.innerHTML='';
   list.forEach((t,i)=>{
     const d=document.createElement('div');
-    const clickable=!t.cur&&t.uri;
-    d.className='ti'+(t.cur?' active':'')+(clickable?' clickable':'');
+    d.className='ti'+(t.cur?' active':'');
     d.innerHTML=`
       <div class="tibars"><div class="tib"></div><div class="tib"></div><div class="tib"></div></div>
       <div class="tinum">${String(i+1).padStart(2,'0')}</div>
@@ -922,55 +919,32 @@ function renderTracks(list){
       </div>
       ${t.dur?`<div class="tidur">${fmt(t.dur)}</div>`:''}
     `;
-    if(clickable)d.addEventListener('click',()=>playTrackFromQueue(t.uri));
     el.appendChild(d);
     if(t.cur)requestAnimationFrame(()=>d.scrollIntoView({block:'center',behavior:'smooth'}));
   });
 }
 
 /* ═══ QUEUE ANIMATION ═══ */
-function animateQueueExit(){
+async function animateQueueExit(){
   const items=[...$('#tracks').children];
-  items.forEach((item,i)=>{
-    if(item.classList.contains('active')){
-      // Current song: slide left
-      item.style.transition='transform 0.46s cubic-bezier(0.55,0,1,0.45), opacity 0.36s ease';
-      requestAnimationFrame(()=>{item.style.transform='translateX(-120%)';item.style.opacity='0'});
-    } else {
-      // Upcoming songs: push up, staggered
-      const delay=i*32;
-      item.style.transition=`transform 0.4s cubic-bezier(0.4,0,0.6,1) ${delay}ms, opacity 0.3s ease ${delay}ms`;
-      requestAnimationFrame(()=>{item.style.transform='translateY(-18px)';item.style.opacity='0'});
-    }
+  if(!items.length)return;
+  const active=items.find(i=>i.classList.contains('active'));
+  const others=items.filter(i=>i!==active);
+  const h=active?active.offsetHeight:52;
+  // Active song: slide left
+  if(active){
+    active.style.transition='transform 0.44s cubic-bezier(0.55,0,1,0.45),opacity 0.34s ease';
+    requestAnimationFrame(()=>{active.style.transform='translateX(-120%)';active.style.opacity='0'});
+  }
+  // Remaining songs: push up (no fade), staggered
+  await sleep(80);
+  others.forEach((item,i)=>{
+    item.style.transition=`transform 0.42s cubic-bezier(0.4,0,0.2,1) ${i*28}ms`;
+    requestAnimationFrame(()=>{item.style.transform=`translateY(-${h}px)`});
   });
-}
-function prepareQueueEnter(){
-  [...$('#tracks').children].forEach(item=>{
-    item.style.opacity='0';
-    item.style.transform='translateY(16px)';
-    item.style.transition='none';
-  });
-}
-function animateQueueEnter(){
-  [...$('#tracks').children].forEach((item,i)=>{
-    setTimeout(()=>{
-      item.style.transition='transform 0.56s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.44s ease';
-      item.style.transform='translateY(0)';
-      item.style.opacity='1';
-    },i*60);
-  });
+  await sleep(460);
 }
 
-/* ═══ PLAY FROM QUEUE ═══ */
-async function playTrackFromQueue(uri){
-  if(!uri)return;
-  try{
-    let r=await cmdJSON('PUT','/me/player/play',{uris:[uri]});
-    if(r.status===401){await doRefresh();r=await cmdJSON('PUT','/me/player/play',{uris:[uri]})}
-    if(r.ok||r.status===204){setTimeout(poll,600)}
-    else if(r.status===404){showToast('Open Spotify on a device first')}
-  }catch(e){}
-}
 
 /* ═══ RENDER ═══ */
 function render(){
@@ -1005,9 +979,8 @@ function stopProg(){if(pRAF){cancelAnimationFrame(pRAF);pRAF=null}}
 /* ═══ TRANSITION ═══ */
 async function transition(d){
   const vl=$('#veil');
-  // ① Queue exits while screen is still visible
-  animateQueueExit();
-  await sleep(220);
+  // ① Queue exit — fully visible to user (slide left + push up)
+  await animateQueueExit();
   // ② Veil closes
   vl.classList.add('on'); await sleep(340);
   // ③ Update state (hidden behind veil)
@@ -1015,14 +988,11 @@ async function transition(d){
   S.art=d.art; S.prog=d.prog; S.dur=d.dur; S.playing=d.playing;
   S.pollT=Date.now(); S.pollP=d.prog;
   setBg(S.art);
-  // ④ Render new queue silently, pre-position for entrance
+  // ④ Render new queue + visuals (hidden behind veil)
   await refreshQueue();
-  prepareQueueEnter();
   render();
-  // ⑤ Veil lifts
+  // ⑤ Veil lifts — new queue already in place
   await sleep(160); vl.classList.remove('on');
-  // ⑥ Items cascade in
-  animateQueueEnter();
 }
 
 /* ═══ POLL ═══ */
@@ -1146,7 +1116,7 @@ function makeDeviceEl(dev){
 
 async function selectDevice(deviceId){
   closeDevices();
-  await cmdJSON('PUT','/me/player',{device_ids:[deviceId],play:false});
+  await cmdJSON('PUT','/me/player',{device_ids:[deviceId],play:S.playing});
   showToast('Switched device');
   setTimeout(poll,800);
 }
