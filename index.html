@@ -446,6 +446,101 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
   .bleft{width:auto}
   .bright{width:auto}
 }
+
+/* ── SEARCH PANEL ── */
+#srPanel{
+  position:fixed;inset:0;z-index:150;
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:calc(var(--safe-t) + 58px) 16px 0;
+  background:rgba(0,0,0,.58);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  opacity:0;pointer-events:none;
+  transition:opacity .22s;
+}
+#srPanel.on{opacity:1;pointer-events:auto}
+#srBox{
+  width:100%;max-width:480px;
+  background:rgba(16,16,16,.96);
+  border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+  display:flex;flex-direction:column;
+  max-height:68vh;
+}
+#srHead{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+#srInput{
+  flex:1;background:none;border:none;outline:none;
+  color:#fff;font-family:var(--fn);font-size:14px;
+  padding:4px 0;
+}
+#srInput::placeholder{color:var(--dim2)}
+#srClose{
+  background:none;border:none;color:var(--dim2);cursor:pointer;
+  padding:4px;display:flex;align-items:center;
+  transition:color .15s;flex-shrink:0;
+}
+#srClose:hover{color:#fff}
+#srList{
+  flex:1;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent;
+}
+#srList::-webkit-scrollbar{width:3px}
+#srList::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.sr-empty{
+  padding:32px 16px;text-align:center;
+  font-family:var(--fm);font-size:12px;color:var(--dim2);
+}
+.sr{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,.03);
+  transition:background .15s;
+}
+.sr:last-child{border-bottom:none}
+.sr:hover{background:rgba(255,255,255,.04)}
+.sr-art{
+  width:40px;height:40px;border-radius:6px;
+  overflow:hidden;flex-shrink:0;background:#1a1a1a;
+}
+.sr-art img{width:100%;height:100%;object-fit:cover;display:block}
+.sr-info{flex:1;min-width:0}
+.sr-title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-artist{font-size:10.5px;font-family:var(--fm);color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sr-btn{
+  background:rgba(29,185,84,.14);border:1px solid rgba(29,185,84,.28);
+  color:#1DB954;cursor:pointer;
+  border-radius:50px;padding:0 13px;height:27px;
+  display:flex;align-items:center;
+  font-family:var(--fm);font-size:10.5px;font-weight:600;
+  transition:background .18s,opacity .2s;flex-shrink:0;white-space:nowrap;
+}
+.sr-btn:hover{background:rgba(29,185,84,.26)}
+.sr-btn:disabled{opacity:.38;cursor:default;pointer-events:none}
+.sr-spin{
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.12);border-top-color:rgba(255,255,255,.55);
+  border-radius:50%;animation:spin .65s linear infinite;margin:0 auto;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Toast */
+#toast{
+  position:fixed;
+  bottom:calc(var(--botH) + var(--safe-b) + 14px);
+  left:50%;transform:translateX(-50%) translateY(10px);
+  background:rgba(28,28,28,.96);border:1px solid var(--border);
+  border-radius:50px;padding:9px 20px;
+  font-family:var(--fm);font-size:12px;color:#fff;
+  opacity:0;pointer-events:none;z-index:500;
+  transition:opacity .2s,transform .2s;white-space:nowrap;
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (orientation:portrait),(max-aspect-ratio:2/3){
+  #toast{bottom:calc(100px + var(--safe-b))}
+}
 </style>
 </head>
 <body>
@@ -492,6 +587,7 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
       <div class="tbrand">Timessss</div>
       <div class="tclk" id="tclk">--:--:--</div>
       <div class="tact">
+        <button class="tbt" id="srBtn">Search</button>
         <button class="tbt" id="discBtn">Disconnect</button>
       </div>
     </div>
@@ -546,6 +642,22 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
     </div>
 
   </div>
+  <!-- Search Panel -->
+  <div id="srPanel">
+    <div id="srBox">
+      <div id="srHead">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:15px;height:15px;flex-shrink:0;opacity:.35"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input id="srInput" type="text" placeholder="Search songs…" autocomplete="off" spellcheck="false">
+        <button id="srClose">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </div>
+      <div id="srList"><div class="sr-empty">Search for a song to add to queue</div></div>
+    </div>
+  </div>
+  <!-- Toast -->
+  <div id="toast"></div>
+
 </div>
 
 <script>
@@ -797,15 +909,13 @@ $('#bNext').onclick=async()=>{await cmd('POST','/me/player/next');setTimeout(pol
 $('#bPrev').onclick=async()=>{await cmd('POST','/me/player/previous');setTimeout(poll,500)};
 $('#discBtn').onclick=()=>{clearAuth();goAuth()};
 
-/* Auto-hide disconnect after 3s, show on any interaction */
+/* Auto-hide top buttons after 3s, show on any interaction */
 let discTimer=null;
 function showDisc(){
-  $('#discBtn').style.opacity='1';
-  $('#discBtn').style.pointerEvents='auto';
+  ['#discBtn','#srBtn'].forEach(id=>{$(id).style.opacity='1';$(id).style.pointerEvents='auto'});
   clearTimeout(discTimer);
   discTimer=setTimeout(()=>{
-    $('#discBtn').style.opacity='0';
-    $('#discBtn').style.pointerEvents='none';
+    ['#discBtn','#srBtn'].forEach(id=>{$(id).style.opacity='0';$(id).style.pointerEvents='none'});
   },3000);
 }
 ['mousemove','touchstart','click','keydown'].forEach(ev=>document.addEventListener(ev,showDisc,{passive:true}));
@@ -827,6 +937,85 @@ $('#authBtn').onclick=doAuth;
 })();
 
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+/* ═══ SEARCH + QUEUE ═══ */
+function showToast(msg){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2400);
+}
+
+function openSearch(){
+  $('#srPanel').classList.add('on');
+  setTimeout(()=>$('#srInput').focus(),120);
+}
+function closeSearch(){
+  $('#srPanel').classList.remove('on');
+  $('#srInput').value='';
+  $('#srList').innerHTML='<div class="sr-empty">Search for a song to add to queue</div>';
+}
+
+$('#srBtn').onclick=openSearch;
+$('#srClose').onclick=closeSearch;
+$('#srPanel').addEventListener('click',e=>{if(e.target===$('#srPanel'))closeSearch()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#srPanel').classList.contains('on'))closeSearch()});
+
+let srDebounce=null;
+$('#srInput').addEventListener('input',()=>{
+  clearTimeout(srDebounce);
+  const q=$('#srInput').value.trim();
+  if(!q){$('#srList').innerHTML='<div class="sr-empty">Search for a song to add to queue</div>';return}
+  $('#srList').innerHTML='<div class="sr-empty"><div class="sr-spin"></div></div>';
+  srDebounce=setTimeout(()=>doSearch(q),300);
+});
+
+async function doSearch(q){
+  const d=await api(`/search?type=track&limit=10&q=${encodeURIComponent(q)}`);
+  if(!d?.tracks?.items?.length){$('#srList').innerHTML='<div class="sr-empty">No results found</div>';return}
+  $('#srList').innerHTML='';
+  d.tracks.items.forEach(t=>{
+    const art=t.album?.images?.[1]?.url||t.album?.images?.[0]?.url||'';
+    const artists=(t.artists||[]).map(a=>a.name).join(', ');
+    const div=document.createElement('div');
+    div.className='sr';
+    div.innerHTML=`
+      <div class="sr-art"><img src="${esc(art)}" loading="lazy" alt=""></div>
+      <div class="sr-info">
+        <div class="sr-title">${esc(t.name)}</div>
+        <div class="sr-artist">${esc(artists)}</div>
+      </div>
+      <button class="sr-btn">Play Next</button>
+    `;
+    div.querySelector('.sr-btn').onclick=()=>addToQueue(t.uri,div.querySelector('.sr-btn'));
+    $('#srList').appendChild(div);
+  });
+}
+
+async function addToQueue(uri,btn){
+  if(btn.disabled)return;
+  btn.disabled=true;
+  // Check for active device first
+  const devs=await api('/me/player/devices');
+  if(!devs){showToast('Could not reach Spotify');btn.disabled=false;return}
+  const active=(devs.devices||[]).find(d=>d.is_active);
+  if(!active){
+    showToast('Open Spotify on a device to enable playback');
+    btn.disabled=false;return;
+  }
+  try{
+    let r=await cmd('POST',`/me/player/queue?uri=${encodeURIComponent(uri)}`);
+    if(r.status===401){await doRefresh();r=await cmd('POST',`/me/player/queue?uri=${encodeURIComponent(uri)}`)}
+    if(r.ok||r.status===204||r.status===200){
+      showToast('Added to queue');
+      setTimeout(()=>{btn.disabled=false},1600);
+    } else if(r.status===403){
+      showToast('Spotify Premium required');btn.disabled=false;
+    } else if(r.status===404){
+      showToast('No active device found');btn.disabled=false;
+    } else {
+      showToast('Failed to add — try again');btn.disabled=false;
+    }
+  }catch(e){showToast('Network error');btn.disabled=false}
+}
 </script>
 </body>
 </html>
