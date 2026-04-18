@@ -988,9 +988,11 @@ async function transition(d){
   S.art=d.art; S.prog=d.prog; S.dur=d.dur; S.playing=d.playing;
   S.pollT=Date.now(); S.pollP=d.prog;
   setBg(S.art);
-  // ④ Render new queue + visuals (hidden behind veil)
+  // ④ Hide tracks before DOM swap — prevents single-frame flash of old items
+  $('#tracks').style.visibility='hidden';
   await refreshQueue();
   render();
+  $('#tracks').style.visibility='';
   // ⑤ Veil lifts — new queue already in place
   await sleep(160); vl.classList.remove('on');
 }
