@@ -520,6 +520,9 @@ html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:var
 }
 .sr-btn:hover{background:rgba(29,185,84,.26)}
 .sr-btn:disabled{opacity:.38;cursor:default;pointer-events:none}
+.sr-now{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.18);color:#fff}
+.sr-now:hover{background:rgba(255,255,255,.16)}
+.sr-btns{display:flex;gap:6px;flex-shrink:0}
 .sr-spin{
   width:16px;height:16px;
   border:2px solid rgba(255,255,255,.12);border-top-color:rgba(255,255,255,.55);
@@ -725,9 +728,16 @@ async function cmd(method,path){
   if(expired())await doRefresh();
   return fetch('https://api.spotify.com/v1'+path,{method,headers:{Authorization:'Bearer '+token()}});
 }
+async function cmdJSON(method,path,body){
+  if(expired())await doRefresh();
+  return fetch('https://api.spotify.com/v1'+path,{method,
+    headers:{Authorization:'Bearer '+token(),'Content-Type':'application/json'},
+    body:body?JSON.stringify(body):undefined});
+}
 
 /* ═══ STATE ═══ */
 let S={playing:false,tid:null,prog:0,dur:0,title:'',artist:'',album:'',art:'',bgSide:'a',pollT:0,pollP:0};
+let sdkDeviceId=null;
 
 /* ═══ CLOCK ═══ */
 const SLOTS=['h0','h1','m0','m1','s0','s1'];
@@ -929,7 +939,7 @@ showDisc();
 
 /* ═══ AUTH FLOW ═══ */
 function goAuth(){if(pollId)clearInterval(pollId);stopProg();$('#auth').classList.remove('out');goIdle()}
-function goMain(){$('#auth').classList.add('out');poll();pollId=setInterval(poll,3500)}
+function goMain(){$('#auth').classList.add('out');poll();pollId=setInterval(poll,3500);loadSpotifySDK()}
 $('#authBtn').onclick=doAuth;
 
 /* ═══ INIT ═══ */
@@ -943,6 +953,36 @@ $('#authBtn').onclick=doAuth;
 })();
 
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+/* ═══ SPOTIFY WEB PLAYBACK SDK ═══ */
+function loadSpotifySDK(){
+  if(document.getElementById('spotify-sdk'))return;
+  const s=document.createElement('script');
+  s.id='spotify-sdk';s.src='https://sdk.scdn.co/spotify-player.js';
+  document.body.appendChild(s);
+}
+
+window.onSpotifyWebPlaybackSDKReady=()=>{
+  const player=new Spotify.Player({
+    name:'Timessss',
+    getOAuthToken:async cb=>{if(expired())await doRefresh();cb(token())},
+    volume:0.8
+  });
+  player.addListener('ready',async({device_id})=>{
+    sdkDeviceId=device_id;
+    await transferToSDK(false);
+  });
+  player.addListener('not_ready',()=>{sdkDeviceId=null});
+  player.addListener('account_error',()=>showToast('Spotify Premium required for in-browser playback'));
+  player.addListener('authentication_error',async()=>{await doRefresh()});
+  player.addListener('initialization_error',({message})=>console.warn('SDK:',message));
+  player.connect();
+};
+
+async function transferToSDK(play=false){
+  if(!sdkDeviceId)return;
+  await cmdJSON('PUT','/me/player',{device_ids:[sdkDeviceId],play});
+}
 
 /* ═══ SEARCH + QUEUE ═══ */
 function showToast(msg){
@@ -989,11 +1029,37 @@ async function doSearch(q){
         <div class="sr-title">${esc(t.name)}</div>
         <div class="sr-artist">${esc(artists)}</div>
       </div>
-      <button class="sr-btn">Play Next</button>
+      <div class="sr-btns">
+        <button class="sr-btn sr-now">Play Now</button>
+        <button class="sr-btn">Play Next</button>
+      </div>
     `;
-    div.querySelector('.sr-btn').onclick=()=>addToQueue(t.uri,div.querySelector('.sr-btn'));
+    div.querySelector('.sr-now').onclick=()=>playNow(t.uri,div.querySelector('.sr-now'));
+    div.querySelector('.sr-btn:not(.sr-now)').onclick=()=>addToQueue(t.uri,div.querySelector('.sr-btn:not(.sr-now)'));
     $('#srList').appendChild(div);
   });
+}
+
+async function playNow(uri,btn){
+  if(btn.disabled)return;
+  btn.disabled=true;
+  if(sdkDeviceId) await transferToSDK(false);
+  const path='/me/player/play'+(sdkDeviceId?`?device_id=${sdkDeviceId}`:'');
+  try{
+    let r=await cmdJSON('PUT',path,{uris:[uri]});
+    if(r.status===401){await doRefresh();r=await cmdJSON('PUT',path,{uris:[uri]})}
+    if(r.ok||r.status===204){
+      showToast('Playing now');
+      setTimeout(()=>{btn.disabled=false;poll()},800);
+    } else if(r.status===403){showToast('Spotify Premium required');btn.disabled=false}
+    else if(r.status===404){
+      showToast('Retrying…');
+      if(sdkDeviceId){await transferToSDK(false);await sleep(600);r=await cmdJSON('PUT',path,{uris:[uri]});
+        if(r.ok||r.status===204){showToast('Playing now');setTimeout(()=>{btn.disabled=false;poll()},800)}
+        else{showToast('Could not start playback');btn.disabled=false}}
+      else{showToast('No active device');btn.disabled=false}
+    } else{showToast('Failed to play');btn.disabled=false}
+  }catch(e){showToast('Network error');btn.disabled=false}
 }
 
 async function addToQueue(uri,btn){
@@ -1004,8 +1070,8 @@ async function addToQueue(uri,btn){
   if(!devs){showToast('Could not reach Spotify');btn.disabled=false;return}
   const active=(devs.devices||[]).find(d=>d.is_active);
   if(!active){
-    showToast('Open Spotify on a device to enable playback');
-    btn.disabled=false;return;
+    if(sdkDeviceId){await transferToSDK(false)}
+    else{showToast('Open Spotify on a device to enable playback');btn.disabled=false;return}
   }
   try{
     let r=await cmd('POST',`/me/player/queue?uri=${encodeURIComponent(uri)}`);
